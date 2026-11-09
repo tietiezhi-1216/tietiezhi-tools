@@ -1,7 +1,9 @@
 import SwiftUI
 
 enum PanelLayout {
-    static let windowControlsHeight: CGFloat = 52
+    static let windowControlsHeight: CGFloat = 64
+    static let windowControlsLeading: CGFloat = 20
+    static let windowControlsTop: CGFloat = 26
     static let coordinateSpace = "panel.content"
     static let sidebarWidth: CGFloat = 224
     static let contentInset: CGFloat = 28
@@ -9,6 +11,20 @@ enum PanelLayout {
     static let itemSpacing: CGFloat = 16
     static let iconSize: CGFloat = 40
     static let actionWidth: CGFloat = 76
+}
+
+enum PanelPalette {
+    static func window(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.085, green: 0.085, blue: 0.095) : Color(red: 0.965, green: 0.965, blue: 0.975)
+    }
+
+    static func content(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.105, green: 0.105, blue: 0.115) : Color(red: 0.985, green: 0.985, blue: 0.99)
+    }
+
+    static func sidebar(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(red: 0.095, green: 0.095, blue: 0.105) : Color(red: 0.95, green: 0.95, blue: 0.96)
+    }
 }
 
 struct PanelDivider: View {
@@ -42,12 +58,12 @@ extension View {
         if #available(macOS 26, *) {
             if prominent {
                 self.buttonStyle(.glassProminent)
-                    .buttonBorderShape(.capsule)
-                    .controlSize(.large)
+                    .buttonBorderShape(.roundedRectangle(radius: 8))
+                    .controlSize(.regular)
             } else {
                 self.buttonStyle(.glass)
-                    .buttonBorderShape(circular ? .circle : .capsule)
-                    .controlSize(.large)
+                    .buttonBorderShape(circular ? .circle : .roundedRectangle(radius: 8))
+                    .controlSize(.regular)
             }
         } else {
             if prominent { self.buttonStyle(.borderedProminent) }
@@ -98,20 +114,11 @@ struct PanelLayoutBoundsKey: PreferenceKey {
 #endif
 
 private struct PanelNavigationSurface: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     func body(content: Content) -> some View {
-        #if compiler(>=6.2)
-        if reduceTransparency {
-            content.background(Color(nsColor: .windowBackgroundColor))
-        } else if #available(macOS 26, *) {
-            content.glassEffect(.regular, in: .rect(cornerRadius: 0))
-        } else {
-            content.background(.bar)
-        }
-        #else
-        content.background(.bar)
-        #endif
+        content.background(PanelPalette.sidebar(scheme).opacity(reduceTransparency ? 1 : 0.96))
     }
 }
 
@@ -134,7 +141,7 @@ struct PanelSearchField: View {
             }
         }
         .padding(.horizontal, 12)
-        .frame(height: 38)
+        .frame(height: 36)
         .modifier(PanelSearchSurface())
     }
 }
@@ -145,12 +152,12 @@ private struct PanelSearchSurface: ViewModifier {
     func body(content: Content) -> some View {
         #if compiler(>=6.2)
         if !reduceTransparency, #available(macOS 26, *) {
-            content.glassEffect(.regular, in: .capsule)
+            content.glassEffect(.regular, in: .rect(cornerRadius: 10))
         } else {
-            content.background(Color(nsColor: .controlBackgroundColor), in: Capsule())
+            content.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
         }
         #else
-        content.background(Color(nsColor: .controlBackgroundColor), in: Capsule())
+        content.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
         #endif
     }
 }

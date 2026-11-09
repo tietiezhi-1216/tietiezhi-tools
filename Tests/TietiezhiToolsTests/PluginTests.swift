@@ -197,6 +197,8 @@ struct PluginTests {
                     let summary = try #require(frames["plugin.summary"])
                     let toolbar = try #require(frames["plugin.commands.toolbar"])
                     let row = try #require(frames["command.\(command.id.uuidString)"])
+                    #expect(abs(bounds.width - host.bounds.width) < 1)
+                    #expect(abs(bounds.height - host.bounds.height) < 1)
                     #expect(abs(sidebar.width - 224) < 1)
                     #expect(controls.maxY <= navigation.minY)
                     #expect(header.minX >= sidebar.maxX)
@@ -213,12 +215,30 @@ struct PluginTests {
                     #expect(window.toolbar == nil)
                     #expect(!window.isOpaque)
                     #expect(window.isMovableByWindowBackground)
+                    var expectedX: CGFloat = 20
                     for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
                         let button = try #require(window.standardWindowButton(kind))
                         let buttonFrame = host.convert(button.bounds, from: button)
                         #expect(controls.contains(buttonFrame))
+                        #expect(abs(buttonFrame.minX - expectedX) < 1)
+                        #expect(abs(buttonFrame.minY - 26) < 1)
                         #expect(!header.intersects(buttonFrame))
                         #expect(!navigation.intersects(buttonFrame))
+                        expectedX = buttonFrame.maxX + 8
+                    }
+                    if let close = window.standardWindowButton(.closeButton),
+                       let container = close.superview?.superview,
+                       let frame = container.superview {
+                        #expect(container.frame.width <= sidebar.width)
+                        for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                            let button = try #require(window.standardWindowButton(kind))
+                            let center = button.convert(NSPoint(x: button.bounds.midX, y: button.bounds.midY), to: nil)
+                            let hit = try #require(frame.hitTest(center))
+                            #expect(hit === button || hit.isDescendant(of: button))
+                        }
+                        let headerPoint = host.convert(NSPoint(x: host.bounds.maxX - 44, y: 48), to: nil)
+                        let headerHit = try #require(frame.hitTest(headerPoint))
+                        #expect(!headerHit.isDescendant(of: container))
                     }
                     if !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
                         #expect(Self.hasDesktopBackdrop(host))
@@ -238,7 +258,7 @@ struct PluginTests {
 
     @MainActor private static func hasDesktopBackdrop(_ view: NSView) -> Bool {
         if let effect = view as? NSVisualEffectView,
-           effect.blendingMode == .behindWindow, effect.material == .sidebar {
+           effect.blendingMode == .behindWindow, effect.material == .underWindowBackground {
             return true
         }
         return view.subviews.contains { hasDesktopBackdrop($0) }

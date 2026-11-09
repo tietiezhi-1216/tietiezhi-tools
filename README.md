@@ -58,11 +58,11 @@ cd tietiezhi-tools
 
 ### 原生界面与 Liquid Glass
 
-主窗口采用 `hiddenTitleBar` 与全尺寸内容，不显示独立的标题条或工具栏，保留原生红黄绿按钮。左侧顶部预留 52 pt 窗口按钮区域，导航从其下方开始；右侧页面标题位于按钮区域右边。顶部空白区和页面头部可拖动窗口。
+主窗口采用 `hiddenTitleBar` 与全尺寸内容，不显示独立的标题条或工具栏，保留原生红黄绿按钮。左侧顶部预留 64 pt 窗口按钮区域，按钮距左侧 20 pt、顶部 26 pt，导航从其下方开始；原生按钮宿主仅覆盖左侧，避免挡住正文控件。顶部空白区和页面头部可拖动窗口。
 
 侧边栏固定为 224 pt，始终显示且不可拖动调整；主窗口仍支持正常调整尺寸。右侧内容统一使用 28 pt 水平边距。安装、搜索、添加操作等控件在各页面上方保持可见。
 
-窗口使用 `NSVisualEffectView` 的 `behindWindow` 混合模式采样桌面背景；正文叠加半透明系统背景以保证文字对比度。使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，导航和搜索使用官方 `glassEffect`，主操作按钮采用 `.glass` / `.glassProminent`，保持玻璃边缘与交互反馈。开启系统“减少透明度”后自动回退为实色；增加对比度时提高正文遮罩的不透明度。macOS 14–15 或旧 SDK 构建保留兼容样式。
+窗口采用低透色的中性材质：深色模式以石墨黑为底，浅色模式使用对应的浅灰色，侧栏与正文只有轻微明暗差。原生 `underWindowBackground` 背景保留少量桌面层次，避免壁纸颜色大幅染色。玻璃效果集中在搜索与操作控件；Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时使用官方 `glassEffect`、`.glass` / `.glassProminent`，配合收敛的圆角、选中态细边缘和蓝色重点操作。开启系统“减少透明度”或增加对比度时提高背景遮罩的不透明度。macOS 14–15 或旧 SDK 构建保留兼容样式。
 
 设计依据：[Apple Liquid Glass 采用指南](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)、[材质规范](https://developer.apple.com/design/human-interface-guidelines/materials)。
 

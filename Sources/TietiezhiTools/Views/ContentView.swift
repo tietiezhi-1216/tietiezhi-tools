@@ -4,6 +4,8 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var store: PluginStore
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.displayScale) private var displayScale
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
     @ViewState private var selection: String
@@ -21,6 +23,7 @@ struct ContentView: View {
             sidebar
                 .frame(width: PanelLayout.sidebarWidth)
             Divider()
+                .opacity(0.45)
             VStack(spacing: 0) {
                 pageHeader
                 Group {
@@ -33,14 +36,17 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .windowBackgroundColor).opacity(contentBackgroundOpacity))
+            .background(PanelPalette.content(scheme).opacity(contentBackgroundOpacity))
         }
         .frame(minWidth: 880, minHeight: 580)
         .background {
             if reduceTransparency {
-                Color(nsColor: .windowBackgroundColor)
+                PanelPalette.window(scheme)
             } else {
-                PanelWindowBackdrop()
+                ZStack {
+                    PanelWindowBackdrop()
+                    PanelPalette.window(scheme).opacity(0.96)
+                }
             }
         }
         .background {
@@ -115,18 +121,27 @@ struct ContentView: View {
 
     private func navigationItem(_ title: String, symbol: String, id: String) -> some View {
         Button { selection = id } label: {
-            Label(title, systemImage: symbol)
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .foregroundStyle(selection == id ? Color.accentColor : Color.secondary)
+                    .frame(width: 16)
+                Text(title)
+            }
                 .font(.system(size: 13, weight: selection == id ? .semibold : .regular))
                 .lineLimit(1)
-                .foregroundStyle(selection == id ? Color.accentColor : Color.primary)
+                .foregroundStyle(selection == id ? Color.primary : Color.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .frame(height: 40)
                 .contentShape(Rectangle())
                 .background(
-                    selection == id ? Color.accentColor.opacity(0.14) : Color.clear,
+                    selection == id ? Color.primary.opacity(0.065) : Color.clear,
                     in: RoundedRectangle(cornerRadius: 9)
                 )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 9)
+                        .strokeBorder(Color.primary.opacity(selection == id ? 0.06 : 0), lineWidth: 1 / displayScale)
+                }
         }
         .buttonStyle(.plain)
         .help(title)
@@ -165,6 +180,6 @@ struct ContentView: View {
 
     private var contentBackgroundOpacity: Double {
         if reduceTransparency { return 1 }
-        return contrast == .increased ? 0.86 : 0.38
+        return contrast == .increased ? 1 : 0.98
     }
 }
