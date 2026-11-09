@@ -58,11 +58,11 @@ cd tietiezhi-tools
 
 ### 原生界面与 Liquid Glass
 
-主窗口显式使用系统标准标题栏，红黄绿窗口按钮由系统独立布局。标题栏下方采用固定两栏：左侧导航，右侧依次放置页面标题、页面操作和滚动内容。页面不再使用自动分栏工具栏或悬浮底栏，避免内容与标题栏争抢安全区。
+主窗口采用 `hiddenTitleBar` 与全尺寸内容，不显示独立的标题条或工具栏，保留原生红黄绿按钮。左侧顶部预留 52 pt 窗口按钮区域，导航从其下方开始；右侧页面标题位于按钮区域右边。顶部空白区和页面头部可拖动窗口。
 
 侧边栏固定为 224 pt，始终显示且不可拖动调整；主窗口仍支持正常调整尺寸。右侧内容统一使用 28 pt 水平边距。安装、搜索、添加操作等控件在各页面上方保持可见。
 
-使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，导航层使用官方 `glassEffect`。正文保持清晰的普通内容层，遵循系统外观、对比度与透明度设置。macOS 14–15 或旧 SDK 构建保留原生材质作为兼容样式。
+窗口使用 `NSVisualEffectView` 的 `behindWindow` 混合模式采样桌面背景；正文叠加半透明系统背景以保证文字对比度。使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，导航和搜索使用官方 `glassEffect`，主操作按钮采用 `.glass` / `.glassProminent`，保持玻璃边缘与交互反馈。开启系统“减少透明度”后自动回退为实色；增加对比度时提高正文遮罩的不透明度。macOS 14–15 或旧 SDK 构建保留兼容样式。
 
 设计依据：[Apple Liquid Glass 采用指南](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)、[材质规范](https://developer.apple.com/design/human-interface-guidelines/materials)。
 

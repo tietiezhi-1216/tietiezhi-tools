@@ -177,7 +177,7 @@ struct PluginTests {
             let host = NSHostingView(rootView: root)
             let window = NSWindow(
                 contentRect: NSRect(x: 100, y: 100, width: 1040, height: 720),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false
+                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false
             )
             window.isReleasedWhenClosed = false
             window.contentView = host
@@ -191,22 +191,38 @@ struct PluginTests {
                     let frames = observation.frames
                     let bounds = try #require(frames["panel.root"])
                     let sidebar = try #require(frames["panel.sidebar"])
+                    let controls = try #require(frames["panel.windowControls"])
+                    let navigation = try #require(frames["navigation.__store__"])
                     let header = try #require(frames["panel.header"])
                     let summary = try #require(frames["plugin.summary"])
                     let toolbar = try #require(frames["plugin.commands.toolbar"])
                     let row = try #require(frames["command.\(command.id.uuidString)"])
                     #expect(abs(sidebar.width - 224) < 1)
+                    #expect(controls.maxY <= navigation.minY)
                     #expect(header.minX >= sidebar.maxX)
                     #expect(header.maxY <= summary.minY + 1)
                     #expect(summary.maxY <= toolbar.minY + 1)
                     #expect(toolbar.maxY <= row.minY + 1)
-                    for region in [sidebar, header, summary, toolbar, row] {
+                    for region in [sidebar, controls, navigation, header, summary, toolbar, row] {
                         #expect(bounds.contains(region))
                     }
-                    let contentFrame = host.convert(host.bounds, to: nil)
-                    let closeButton = try #require(window.standardWindowButton(.closeButton))
-                    let trafficLightFrame = closeButton.convert(closeButton.bounds, to: nil)
-                    #expect(contentFrame.maxY <= trafficLightFrame.minY)
+                    #expect(window.styleMask.contains(.fullSizeContentView))
+                    #expect(window.titleVisibility == .hidden)
+                    #expect(window.titlebarAppearsTransparent)
+                    #expect(window.titlebarSeparatorStyle == .none)
+                    #expect(window.toolbar == nil)
+                    #expect(!window.isOpaque)
+                    #expect(window.isMovableByWindowBackground)
+                    for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+                        let button = try #require(window.standardWindowButton(kind))
+                        let buttonFrame = host.convert(button.bounds, from: button)
+                        #expect(controls.contains(buttonFrame))
+                        #expect(!header.intersects(buttonFrame))
+                        #expect(!navigation.intersects(buttonFrame))
+                    }
+                    if !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
+                        #expect(Self.hasDesktopBackdrop(host))
+                    }
                 }
             }
         }
@@ -218,6 +234,14 @@ struct PluginTests {
             window.displayIfNeeded()
             RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
         }
+    }
+
+    @MainActor private static func hasDesktopBackdrop(_ view: NSView) -> Bool {
+        if let effect = view as? NSVisualEffectView,
+           effect.blendingMode == .behindWindow, effect.material == .sidebar {
+            return true
+        }
+        return view.subviews.contains { hasDesktopBackdrop($0) }
     }
 
     @MainActor private final class PanelBoundsObservation {

@@ -4,6 +4,8 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var store: PluginStore
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     @ViewState private var selection: String
 
     init(initialSelection: String = "__store__") {
@@ -21,7 +23,6 @@ struct ContentView: View {
             Divider()
             VStack(spacing: 0) {
                 pageHeader
-                Divider()
                 Group {
                     if let plugin = selectedPlugin {
                         PluginDetailView(pluginID: plugin.id)
@@ -32,11 +33,23 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .windowBackgroundColor))
+            .background(Color(nsColor: .windowBackgroundColor).opacity(contentBackgroundOpacity))
         }
         .frame(minWidth: 880, minHeight: 580)
+        .background {
+            if reduceTransparency {
+                Color(nsColor: .windowBackgroundColor)
+            } else {
+                PanelWindowBackdrop()
+            }
+        }
+        .background {
+            PanelWindowChromeAccessor()
+                .allowsHitTesting(false)
+        }
         .panelRegion("panel.root")
         .coordinateSpace(name: PanelLayout.coordinateSpace)
+        .ignoresSafeArea(.container, edges: .top)
         .controlSize(.regular)
         .onAppear {
             let action = openWindow
@@ -57,6 +70,11 @@ struct ContentView: View {
 
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
+            Color.clear
+                .frame(height: PanelLayout.windowControlsHeight)
+                .contentShape(Rectangle())
+                .panelWindowDragArea()
+                .panelRegion("panel.windowControls")
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
                     navigationItem("插件商店", symbol: "square.grid.2x2", id: "__store__")
@@ -82,7 +100,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal, 12)
-                .padding(.top, 20)
+                .padding(.top, 8)
             }
             Text("Tietiezhi Tools")
                 .font(.caption).foregroundStyle(.tertiary)
@@ -113,6 +131,7 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .help(title)
         .accessibilityAddTraits(selection == id ? .isSelected : [])
+        .panelRegion("navigation.\(id)")
     }
 
     private var pageHeader: some View {
@@ -130,16 +149,22 @@ struct ContentView: View {
             SettingsLink {
                 Image(systemName: "gearshape")
                     .font(.system(size: 15))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 18, height: 18)
             }
-            .buttonStyle(.borderless)
+            .panelGlassButton(circular: true)
             .help("设置（⌘,）")
             .accessibilityLabel("设置")
         }
         .padding(.horizontal, PanelLayout.contentInset)
-        .padding(.vertical, 22)
+        .padding(.vertical, 24)
         .frame(minHeight: 96)
+        .panelWindowDragArea()
         .accessibilityElement(children: .contain)
         .panelRegion("panel.header")
+    }
+
+    private var contentBackgroundOpacity: Double {
+        if reduceTransparency { return 1 }
+        return contrast == .increased ? 0.86 : 0.38
     }
 }

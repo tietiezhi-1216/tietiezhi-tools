@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum PanelLayout {
+    static let windowControlsHeight: CGFloat = 52
     static let coordinateSpace = "panel.content"
     static let sidebarWidth: CGFloat = 224
     static let contentInset: CGFloat = 28
@@ -35,6 +36,38 @@ extension View {
         modifier(PanelNavigationSurface())
     }
 
+    @ViewBuilder
+    func panelGlassButton(prominent: Bool = false, circular: Bool = false) -> some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26, *) {
+            if prominent {
+                self.buttonStyle(.glassProminent)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.large)
+            } else {
+                self.buttonStyle(.glass)
+                    .buttonBorderShape(circular ? .circle : .capsule)
+                    .controlSize(.large)
+            }
+        } else {
+            if prominent { self.buttonStyle(.borderedProminent) }
+            else { self.buttonStyle(.bordered) }
+        }
+        #else
+        if prominent { self.buttonStyle(.borderedProminent) }
+        else { self.buttonStyle(.bordered) }
+        #endif
+    }
+
+    @ViewBuilder
+    func panelWindowDragArea() -> some View {
+        if #available(macOS 15, *) {
+            self.gesture(WindowDragGesture())
+        } else {
+            self
+        }
+    }
+
     func panelRegion(_ identifier: String) -> some View {
         #if DEBUG
         self.background {
@@ -65,9 +98,13 @@ struct PanelLayoutBoundsKey: PreferenceKey {
 #endif
 
 private struct PanelNavigationSurface: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     func body(content: Content) -> some View {
         #if compiler(>=6.2)
-        if #available(macOS 26, *) {
+        if reduceTransparency {
+            content.background(Color(nsColor: .windowBackgroundColor))
+        } else if #available(macOS 26, *) {
             content.glassEffect(.regular, in: .rect(cornerRadius: 0))
         } else {
             content.background(.bar)
@@ -97,7 +134,23 @@ struct PanelSearchField: View {
             }
         }
         .padding(.horizontal, 12)
-        .frame(height: 34)
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+        .frame(height: 38)
+        .modifier(PanelSearchSurface())
+    }
+}
+
+private struct PanelSearchSurface: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if !reduceTransparency, #available(macOS 26, *) {
+            content.glassEffect(.regular, in: .capsule)
+        } else {
+            content.background(Color(nsColor: .controlBackgroundColor), in: Capsule())
+        }
+        #else
+        content.background(Color(nsColor: .controlBackgroundColor), in: Capsule())
+        #endif
     }
 }

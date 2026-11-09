@@ -6,6 +6,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B00000000000000000000003 /* PanelWindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000004 /* PanelWindowChrome.swift */; };
 		B00000000000000000000001 /* PanelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000002 /* PanelStyle.swift */; };
 		0B895FF7A30AA4B90EB14388 /* TietiezhiToolsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD79D86815E48CF7EA5AAB /* TietiezhiToolsApp.swift */; };
 		0C7FE6ECF8043D33DE33268E /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FBBF785FE6F23FA6503CFC9 /* AppAppearance.swift */; };
@@ -25,6 +26,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B00000000000000000000004 /* PanelWindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelWindowChrome.swift; sourceTree = "<group>"; };
 		B00000000000000000000002 /* PanelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelStyle.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000007 /* Tietiezhi Tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tietiezhi Tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -132,6 +134,7 @@
 		9C2A3F0DB1E6F7465E998255 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B00000000000000000000004 /* PanelWindowChrome.swift */,
 				B00000000000000000000002 /* PanelStyle.swift */,
 				D2B2FC736B2AE6D1578B42C1 /* CommandEditor.swift */,
 				DFAFA4AFA4549F3ACF1E34FB /* ContentView.swift */,
@@ -199,6 +202,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00000000000000000000003 /* PanelWindowChrome.swift in Sources */,
 				B00000000000000000000001 /* PanelStyle.swift in Sources */,
 				0B895FF7A30AA4B90EB14388 /* TietiezhiToolsApp.swift in Sources */,
 				0C7FE6ECF8043D33DE33268E /* AppAppearance.swift in Sources */,

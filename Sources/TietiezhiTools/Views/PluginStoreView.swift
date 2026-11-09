@@ -23,13 +23,14 @@ struct PluginStoreView: View {
                 }
                 .help("刷新插件商店")
                 .accessibilityLabel("刷新插件商店")
+                .panelGlassButton(circular: true)
                 .disabled(store.isRefreshing)
                 Button(action: importPackage) {
                     Label("从 ZIP 安装…", systemImage: "square.and.arrow.down")
                 }
+                .panelGlassButton()
                 .disabled(store.isInstalling)
             }
-            .buttonStyle(.bordered)
             .padding(.horizontal, PanelLayout.contentInset)
             .padding(.vertical, 18)
             .accessibilityElement(children: .contain)
@@ -68,7 +69,6 @@ struct PluginStoreView: View {
                 }
             }
 
-            PanelDivider()
             HStack(spacing: 12) {
                 Link("打开插件仓库", destination: HostInfo.repository.appendingPathComponent("tree/main/Plugins"))
                 Spacer()
@@ -111,15 +111,15 @@ struct PluginStoreView: View {
         if let installed = store.installed.first(where: { $0.id == entry.id }) {
             if Version(entry.version)! > Version(installed.manifest.version)! {
                 Button("更新") { Task { await store.install(entry) } }
-                    .buttonStyle(.borderedProminent)
+                    .panelGlassButton(prominent: true)
                     .disabled(store.isInstalling)
             } else {
                 Button("打开") { selectPlugin(entry.id) }
-                    .buttonStyle(.bordered)
+                    .panelGlassButton()
             }
         } else {
             Button("安装") { Task { await store.install(entry) } }
-                .buttonStyle(.borderedProminent)
+                .panelGlassButton(prominent: true)
                 .disabled(store.isInstalling)
         }
     }

@@ -33,6 +33,7 @@ struct PluginDetailView: View {
                             .frame(width: 20, height: 24)
                     }
                     .menuIndicator(.hidden)
+                    .panelGlassButton(circular: true)
                     .help("插件更多操作")
                     .accessibilityLabel("插件更多操作")
                 }
@@ -62,7 +63,7 @@ struct PluginDetailView: View {
                     } label: {
                         Label("添加操作", systemImage: "plus")
                     }
-                    .menuStyle(.borderlessButton)
+                    .panelGlassButton(prominent: true)
                     .fixedSize()
                 }
                 .padding(.horizontal, PanelLayout.contentInset)
@@ -142,7 +143,7 @@ struct PluginDetailView: View {
                 .disabled(!plugin.isEnabled || !command.isEnabled || !command.isConfigured)
                 Button("编辑") { editingCommand = command }
             }
-            .buttonStyle(.bordered)
+            .panelGlassButton()
             .fixedSize()
         }
         .padding(.horizontal, PanelLayout.contentInset)
