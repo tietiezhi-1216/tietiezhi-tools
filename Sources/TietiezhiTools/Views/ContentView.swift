@@ -7,18 +7,28 @@ struct ContentView: View {
     @ViewState private var selection: String? = "__store__"
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             List(selection: $selection) {
                 Label("插件商店", systemImage: "square.grid.2x2")
                     .tag("__store__")
-                Section("已安装") {
-                    ForEach(store.installed) { plugin in
-                        Label(plugin.manifest.name, systemImage: plugin.isEnabled ? "puzzlepiece.extension" : "pause.circle")
-                            .tag(plugin.id)
-                    }
+                Text("已安装")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 16)
+                    .accessibilityAddTraits(.isHeader)
+                    .allowsHitTesting(false)
+                ForEach(store.installed) { plugin in
+                    Label(plugin.manifest.name, systemImage: plugin.isEnabled ? "puzzlepiece.extension" : "pause.circle")
+                        .tag(plugin.id)
                 }
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 210)
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(
+                min: PanelLayout.sidebarWidth,
+                ideal: PanelLayout.sidebarWidth,
+                max: PanelLayout.sidebarWidth
+            )
+            .toolbar(removing: .sidebarToggle)
         } detail: {
             Group {
                 if let plugin = store.installed.first(where: { $0.id == selection }) {
@@ -27,12 +37,15 @@ struct ContentView: View {
                     PluginStoreView { selection = $0 }
                 }
             }
+            .controlSize(.regular)
             .toolbar {
                 SettingsLink { Label("设置", systemImage: "gearshape") }
                     .help("设置（⌘,）")
             }
         }
-        .frame(minWidth: 760, minHeight: 500)
+        .navigationSplitViewStyle(.balanced)
+        .toolbar(removing: .sidebarToggle)
+        .frame(minWidth: 840, minHeight: 560)
         .onAppear {
             let action = openWindow
             store.showMainWindow = {

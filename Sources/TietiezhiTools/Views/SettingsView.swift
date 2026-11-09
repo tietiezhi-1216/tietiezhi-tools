@@ -20,7 +20,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 440, height: 300)
+        .controlSize(.regular)
+        .frame(width: 480, height: 320)
     }
 
     private var appVersion: String {

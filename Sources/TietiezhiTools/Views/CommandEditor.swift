@@ -18,6 +18,11 @@ struct CommandEditor: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Text("配置操作")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, PanelLayout.contentInset)
+                .padding(.top, PanelLayout.contentInset)
             Form {
                 TextField("名称", text: $draft.title)
                 Picker("操作", selection: $draft.action) {
@@ -56,16 +61,21 @@ struct CommandEditor: View {
                 if let error { Text(error).foregroundStyle(.red).font(.callout).fixedSize(horizontal: false, vertical: true) }
             }
             .formStyle(.grouped)
-            HStack {
+            HStack(spacing: 12) {
                 Text("至少包含 ⌘、⌥ 或 ⌃。留空则仅手动执行。")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button("取消") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("保存", action: save).keyboardShortcut(.defaultAction)
+                Button("保存", action: save)
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
             }
-            .padding(16)
+            .padding(.horizontal, PanelLayout.contentInset)
+            .padding(.bottom, PanelLayout.contentInset)
+            .padding(.top, 12)
         }
-        .frame(width: 560, height: 400)
+        .controlSize(.regular)
+        .frame(width: 600, height: 440)
     }
 
     private func save() {

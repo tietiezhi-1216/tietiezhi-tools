@@ -56,6 +56,16 @@ cd tietiezhi-tools
 
 ## 开发与验证
 
+### 原生界面与 Liquid Glass
+
+使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，macOS 26+ 采用系统原生侧边栏、工具栏及 `glassEffect` 操作区。玻璃用于导航和操作层，插件列表保持清晰的内容层；遵循系统外观、对比度与透明度设置。
+
+侧边栏固定宽度且始终显示，不提供展开、收起或分组折叠；主窗口仍支持正常调整尺寸。内容区统一使用 24 pt 水平边距、20 pt 行内留白和原生分隔线。macOS 14–15 或旧 SDK 构建保留原生材质作为兼容样式。
+
+设计依据：[Apple Liquid Glass 采用指南](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)、[材质规范](https://developer.apple.com/design/human-interface-guidelines/materials)。
+
+### 构建
+
 ```bash
 swift build
 swift test
