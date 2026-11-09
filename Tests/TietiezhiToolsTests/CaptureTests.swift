@@ -141,14 +141,23 @@ struct CaptureTests {
     }
 
     @Test @MainActor func localOCRReadsSyntheticText() async throws {
-        let image = NSImage(size: CGSize(width: 800, height: 140))
+        let directory = try temporary()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let image = NSImage(size: CGSize(width: 900, height: 540))
         image.lockFocus()
-        NSColor.white.setFill(); CGRect(x: 0, y: 0, width: 800, height: 140).fill()
-        ("CAPTURE TEST 123" as NSString).draw(at: CGPoint(x: 30, y: 40),
-                                            withAttributes: [.font: NSFont.systemFont(ofSize: 48), .foregroundColor: NSColor.black])
+        NSColor.white.setFill(); CGRect(x: 0, y: 0, width: 900, height: 540).fill()
+        for (index, line) in ["CAPTURE TEST 123", "Arrow / Mosaic / OCR / Translation",
+                              "Name          Quantity          Price", "Apple             2                10", "Orange            3                20"].enumerated() {
+            (line as NSString).draw(at: CGPoint(x: 30, y: 460 - index * 70),
+                                   withAttributes: [.font: NSFont.monospacedSystemFont(ofSize: 30, weight: .medium), .foregroundColor: NSColor.black])
+        }
         image.unlockFocus()
-        let result = try await CaptureRecognition.recognize(#require(image.cgImage(forProposedRect: nil, context: nil, hints: nil)))
+        let file = directory.appendingPathComponent("fixture.png")
+        try CaptureImage.write(#require(image.cgImage(forProposedRect: nil, context: nil, hints: nil)), to: file)
+        let result = try await CaptureRecognition.recognize(CaptureImage.load(file))
         #expect(result.text.contains("CAPTURE TEST 123"))
+        #expect(result.text.contains("Apple"))
+        #expect(result.text.contains("Orange"))
     }
 
     @Test func visionServiceRequiresExplicitHTTPSConfiguration() {

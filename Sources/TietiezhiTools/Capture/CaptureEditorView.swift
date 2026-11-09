@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Translation
+import NaturalLanguage
 import UniformTypeIdentifiers
 import AVKit
 
@@ -295,6 +296,9 @@ private struct CaptureRecognitionView: View {
                 let text = try await CaptureRecognition.recognize(document.image)
                 source = text.text; codes = text.codes; localTable = text.table
                 if text.text.isEmpty { error = "未识别到文字，可以调整截图区域或使用视觉模型。" }
+                busy = false
+                codes = (try? await CaptureRecognition.barcodes(document.image)) ?? []
+                if !codes.isEmpty, source.isEmpty { error = nil }
             } catch { self.error = error.localizedDescription }
         }
         .onChange(of: tab) { _, value in
@@ -335,32 +339,46 @@ private struct NativeCaptureTranslation: View {
     let source: String
     @Binding var result: String
     @ViewState private var target = "zh-Hans"
+    @ViewState private var sourceLanguage = ""
     @ViewState private var configuration: TranslationSession.Configuration?
     @ViewState private var busy = false
     @ViewState private var error: String?
     var body: some View {
-        HStack {
-            Picker("译为", selection: $target) {
-                ForEach([("zh-Hans", "简体中文"), ("zh-Hant", "繁體中文"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어"),
-                         ("fr", "Français"), ("de", "Deutsch"), ("es", "Español"), ("it", "Italiano"), ("pt", "Português"),
-                         ("ru", "Русский"), ("ar", "العربية"), ("th", "ไทย"), ("vi", "Tiếng Việt")], id: \.0) { Text($0.1).tag($0.0) }
-            }.frame(width: 200).disabled(busy)
-            Button(busy ? "翻译中…" : "系统翻译") {
-                busy = true; error = nil
-                let next = TranslationSession.Configuration(source: nil, target: Locale.Language(identifier: target))
-                if configuration == next { configuration?.invalidate() } else { configuration = next }
-            }.disabled(source.isEmpty || busy)
-            if let error { Text(error).font(.caption).foregroundStyle(.red) }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Picker("原文", selection: $sourceLanguage) {
+                    Text("自动检测").tag("")
+                    ForEach(languages, id: \.0) { Text($0.1).tag($0.0) }
+                }.frame(width: 210).disabled(busy)
+                Picker("译为", selection: $target) {
+                    ForEach(languages, id: \.0) { Text($0.1).tag($0.0) }
+                }.frame(width: 200).disabled(busy)
+                Button(busy ? "翻译中…" : "系统翻译") {
+                    busy = true; error = nil
+                    let detected = NLLanguageRecognizer.dominantLanguage(for: source)?.rawValue
+                    let identifier = sourceLanguage.isEmpty ? detected : sourceLanguage
+                    let language = identifier.map { Locale.Language(identifier: $0) }
+                    let next = TranslationSession.Configuration(source: language, target: Locale.Language(identifier: target))
+                    if configuration == next { configuration?.invalidate() } else { configuration = next }
+                }.disabled(source.isEmpty || busy)
+            }
+            if let error { Text(error).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
         }
         .translationTask(configuration) { @Sendable session in
             let text = await MainActor.run { source }
             do {
+                try await session.prepareTranslation()
                 let response = try await session.translate(text)
                 await MainActor.run { result = response.targetText; busy = false }
             } catch {
                 await MainActor.run { self.error = error.localizedDescription; busy = false }
             }
         }
+    }
+    private var languages: [(String, String)] {
+        [("zh-Hans", "简体中文"), ("zh-Hant", "繁體中文"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어"),
+         ("fr", "Français"), ("de", "Deutsch"), ("es", "Español"), ("it", "Italiano"), ("pt", "Português"),
+         ("ru", "Русский"), ("ar", "العربية"), ("th", "ไทย"), ("vi", "Tiếng Việt")]
     }
 }
 

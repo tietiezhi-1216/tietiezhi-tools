@@ -67,6 +67,13 @@ enum CaptureRecognition {
             try await withCheckedThrowingContinuation { continuation in job.start(image, continuation: continuation) }
         } onCancel: { job.cancel() }
     }
+    static func barcodes(_ image: CGImage) async throws -> [String] {
+        let job = CaptureRecognitionJob(barcodesOnly: true)
+        let result: CaptureText = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in job.start(image, continuation: continuation) }
+        } onCancel: { job.cancel() }
+        return result.codes
+    }
 }
 
 // VNRequest 的执行和配置在专用工作队列中；cancel() 是 Vision 提供的跨线程取消入口。
@@ -74,9 +81,12 @@ private final class CaptureRecognitionJob: @unchecked Sendable {
     private let lock = NSLock()
     private let text = VNRecognizeTextRequest()
     private let codes = VNDetectBarcodesRequest()
+    private let barcodesOnly: Bool
     private var continuation: CheckedContinuation<CaptureText, Error>?
     private var result: Result<CaptureText, Error>?
     private var timeout: DispatchWorkItem?
+
+    init(barcodesOnly: Bool = false) { self.barcodesOnly = barcodesOnly }
 
     func start(_ image: CGImage, continuation: CheckedContinuation<CaptureText, Error>) {
         let previous = lock.withLock {
@@ -96,21 +106,32 @@ private final class CaptureRecognitionJob: @unchecked Sendable {
         DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 45, execute: timeout)
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             do {
+            if !barcodesOnly {
+            text.revision = VNRecognizeTextRequestRevision2
             text.recognitionLevel = .accurate
             text.usesLanguageCorrection = true
             text.automaticallyDetectsLanguage = true
             text.preferBackgroundProcessing = true
-            // 部分系统版本的多语言识别会等待 Neural Engine；使用支持的 CPU 设备保持可取消和可预测的执行。
-            for (stage, devices) in try text.supportedComputeStageDevices {
-                if let cpu = devices.first(where: { if case .cpu = $0 { true } else { false } }) {
-                    text.setComputeDevice(cpu, for: stage)
-                }
-            }
             let supported = try text.supportedRecognitionLanguages()
             text.recognitionLanguages = ["zh-Hans", "zh-Hant", "en-US", "ja-JP", "ko-KR"].filter { supported.contains($0) }
-            let handler = VNImageRequestHandler(cgImage: image)
-            try handler.perform([text])
-            try handler.perform([codes])
+            }
+            // 部分系统版本的多语言识别会等待 Neural Engine；使用支持的 CPU 设备保持可取消和可预测的执行。
+            let requests: [VNRequest] = barcodesOnly ? [codes] : [text]
+            for request in requests {
+                for (stage, devices) in try request.supportedComputeStageDevices {
+                    if let cpu = devices.first(where: { if case .cpu = $0 { true } else { false } }) {
+                        request.setComputeDevice(cpu, for: stage)
+                    }
+                }
+            }
+            let raster = try CaptureImage.context(width: image.width, height: image.height,
+                                                 colorSpace: CGColorSpace(name: CGColorSpace.sRGB))
+            raster.setFillColor(NSColor.white.cgColor)
+            raster.fill(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            raster.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            guard let normalized = raster.makeImage() else { throw PluginError.invalid("无法准备识别图片。") }
+            let handler = VNImageRequestHandler(cgImage: normalized)
+            try handler.perform(requests)
             let lines = (text.results ?? []).compactMap { result -> RecognizedLine? in
                 guard let candidate = result.topCandidates(1).first else { return nil }
                 return RecognizedLine(text: candidate.string, rect: result.boundingBox)
