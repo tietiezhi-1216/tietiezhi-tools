@@ -150,6 +150,80 @@ struct PluginTests {
         #expect(store.installed.first?.manifest.version == entry.version)
     }
 
+    @Test @MainActor func nativePanelLayoutKeepsRegionsSeparate() async throws {
+        let app = NSApplication.shared
+        let originalAppearance = app.appearance
+        defer { app.appearance = originalAppearance }
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        for longText in [false, true] {
+            let store = PluginStore(directory: directory.appendingPathComponent(longText ? "long" : "normal"))
+            let plugin = PluginManifest(
+                schemaVersion: 1, id: "com.tietiezhi.layout", name: longText ? String(repeating: "长标题", count: 20) : "全局快捷键",
+                version: "1.0.0", summary: longText ? String(repeating: "验证窄窗口中说明换行后仍然能看到全部操作。", count: 20) : "使用快捷键打开应用、打开网址或显示主面板。",
+                author: "Tests", repository: HostInfo.repository, minimumHostVersion: "0.2.0",
+                actions: [.showMainWindow], templates: []
+            )
+            try store.installManifest(plugin)
+            let command = PluginCommand(title: longText ? String(repeating: "操作名称", count: 20) : "显示主面板", action: .showMainWindow)
+            try store.saveCommand(command, pluginID: plugin.id)
+            let observation = PanelBoundsObservation()
+            let root = ContentView(initialSelection: plugin.id)
+                .environmentObject(store)
+                .onPreferenceChange(PanelLayoutBoundsKey.self) { frames in
+                    MainActor.assumeIsolated { observation.frames = frames }
+                }
+            let host = NSHostingView(rootView: root)
+            let window = NSWindow(
+                contentRect: NSRect(x: 100, y: 100, width: 1040, height: 720),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false
+            )
+            window.isReleasedWhenClosed = false
+            window.contentView = host
+            defer { window.close() }
+
+            for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+                app.appearance = NSAppearance(named: appearance)
+                for size in [NSSize(width: 1040, height: 720), NSSize(width: 880, height: 580)] {
+                    window.setContentSize(size)
+                    Self.settleLayout(host, window: window)
+                    let frames = observation.frames
+                    let bounds = try #require(frames["panel.root"])
+                    let sidebar = try #require(frames["panel.sidebar"])
+                    let header = try #require(frames["panel.header"])
+                    let summary = try #require(frames["plugin.summary"])
+                    let toolbar = try #require(frames["plugin.commands.toolbar"])
+                    let row = try #require(frames["command.\(command.id.uuidString)"])
+                    #expect(abs(sidebar.width - 224) < 1)
+                    #expect(header.minX >= sidebar.maxX)
+                    #expect(header.maxY <= summary.minY + 1)
+                    #expect(summary.maxY <= toolbar.minY + 1)
+                    #expect(toolbar.maxY <= row.minY + 1)
+                    for region in [sidebar, header, summary, toolbar, row] {
+                        #expect(bounds.contains(region))
+                    }
+                    let contentFrame = host.convert(host.bounds, to: nil)
+                    let closeButton = try #require(window.standardWindowButton(.closeButton))
+                    let trafficLightFrame = closeButton.convert(closeButton.bounds, to: nil)
+                    #expect(contentFrame.maxY <= trafficLightFrame.minY)
+                }
+            }
+        }
+    }
+
+    @MainActor private static func settleLayout(_ host: NSView, window: NSWindow) {
+        for _ in 0..<8 {
+            host.layoutSubtreeIfNeeded()
+            window.displayIfNeeded()
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        }
+    }
+
+    @MainActor private final class PanelBoundsObservation {
+        var frames: [String: CGRect] = [:]
+    }
+
     private func manifest(id: String = "com.tietiezhi.test", version: String = "1.0.0", minimumHostVersion: String = "0.2.0") -> PluginManifest {
         PluginManifest(schemaVersion: 1, id: id, name: "测试插件", version: version, summary: "Test", author: "Tests",
                        repository: HostInfo.repository, minimumHostVersion: minimumHostVersion,

@@ -11,6 +11,7 @@ struct TietiezhiToolsApp: App {
             ContentView()
                 .environmentObject(store)
         }
+        .windowStyle(.titleBar)
         .defaultSize(width: 1040, height: 720)
         .onChange(of: appearance, initial: true) { _, appearance in
             // 在应用层统一更新窗口与 SwiftUI 内容；nil 会恢复系统外观继承。

@@ -13,17 +13,40 @@ struct PluginStoreView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                PanelSearchField(text: $search)
+                    .frame(maxWidth: 300)
+                Spacer(minLength: 12)
+                Button { Task { await store.refreshCatalog() } } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 20, height: 22)
+                }
+                .help("刷新插件商店")
+                .accessibilityLabel("刷新插件商店")
+                .disabled(store.isRefreshing)
+                Button(action: importPackage) {
+                    Label("从 ZIP 安装…", systemImage: "square.and.arrow.down")
+                }
+                .disabled(store.isInstalling)
+            }
+            .buttonStyle(.bordered)
+            .padding(.horizontal, PanelLayout.contentInset)
+            .padding(.vertical, 18)
+            .accessibilityElement(children: .contain)
+            .panelRegion("store.controls")
+
             if let error = store.catalogError {
-                HStack(alignment: .firstTextBaseline, spacing: PanelLayout.itemSpacing) {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
                     Label(error, systemImage: "exclamationmark.circle")
                         .font(.callout).foregroundStyle(.secondary)
                     Spacer()
                     Button("重试") { Task { await store.refreshCatalog() } }
                 }
-                .padding(PanelLayout.contentInset)
-                PanelDivider()
+                .padding(.horizontal, PanelLayout.contentInset)
+                .padding(.bottom, 16)
             }
 
+            PanelDivider()
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(entries) { entry in
@@ -31,7 +54,6 @@ struct PluginStoreView: View {
                         if entry.id != entries.last?.id { PanelDivider() }
                     }
                 }
-                .padding(.vertical, 4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay {
@@ -45,31 +67,19 @@ struct PluginStoreView: View {
                     )
                 }
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PanelActionBar {
-                Link(destination: HostInfo.repository.appendingPathComponent("tree/main/Plugins")) {
-                    Label("插件仓库", systemImage: "arrow.up.right.square")
-                }
-                .foregroundStyle(.secondary)
-                Spacer(minLength: 16)
+
+            PanelDivider()
+            HStack(spacing: 12) {
+                Link("打开插件仓库", destination: HostInfo.repository.appendingPathComponent("tree/main/Plugins"))
+                Spacer()
                 if store.isInstalling {
                     ProgressView().controlSize(.small)
                     Text("正在安装…").foregroundStyle(.secondary)
                 }
-                Button(action: importPackage) {
-                    Label("从 ZIP 安装…", systemImage: "square.and.arrow.down")
-                }
-                .disabled(store.isInstalling)
             }
-        }
-        .navigationTitle("插件商店")
-        .searchable(text: $search, prompt: "搜索插件")
-        .toolbar {
-            Button { Task { await store.refreshCatalog() } } label: {
-                Label("刷新", systemImage: "arrow.clockwise")
-            }
-            .disabled(store.isRefreshing)
+            .font(.callout)
+            .padding(.horizontal, PanelLayout.contentInset)
+            .frame(height: 52)
         }
         .task { if store.catalog.isEmpty { await store.refreshCatalog() } }
     }
@@ -78,19 +88,21 @@ struct PluginStoreView: View {
         HStack(alignment: .center, spacing: PanelLayout.itemSpacing) {
             PanelIcon(symbol: "puzzlepiece.extension")
             VStack(alignment: .leading, spacing: 6) {
-                Text(entry.name).font(.headline)
+                Text(entry.name).font(.headline).lineLimit(1)
                 Text(entry.summary)
                     .font(.callout).foregroundStyle(.secondary)
+                    .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("\(entry.author) · v\(entry.version)")
                     .font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
             Spacer(minLength: PanelLayout.itemSpacing)
             installButton(entry)
                 .frame(width: PanelLayout.actionWidth)
         }
         .padding(.horizontal, PanelLayout.contentInset)
-        .padding(.vertical, PanelLayout.rowInset)
+        .padding(.vertical, 24)
         .accessibilityElement(children: .contain)
     }
 

@@ -58,9 +58,11 @@ cd tietiezhi-tools
 
 ### 原生界面与 Liquid Glass
 
-使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，macOS 26+ 采用系统原生侧边栏、工具栏及 `glassEffect` 操作区。玻璃用于导航和操作层，插件列表保持清晰的内容层；遵循系统外观、对比度与透明度设置。
+主窗口显式使用系统标准标题栏，红黄绿窗口按钮由系统独立布局。标题栏下方采用固定两栏：左侧导航，右侧依次放置页面标题、页面操作和滚动内容。页面不再使用自动分栏工具栏或悬浮底栏，避免内容与标题栏争抢安全区。
 
-侧边栏固定宽度且始终显示，不提供展开、收起或分组折叠；主窗口仍支持正常调整尺寸。内容区统一使用 24 pt 水平边距、20 pt 行内留白和原生分隔线。macOS 14–15 或旧 SDK 构建保留原生材质作为兼容样式。
+侧边栏固定为 224 pt，始终显示且不可拖动调整；主窗口仍支持正常调整尺寸。右侧内容统一使用 28 pt 水平边距。安装、搜索、添加操作等控件在各页面上方保持可见。
+
+使用 Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时，导航层使用官方 `glassEffect`。正文保持清晰的普通内容层，遵循系统外观、对比度与透明度设置。macOS 14–15 或旧 SDK 构建保留原生材质作为兼容样式。
 
 设计依据：[Apple Liquid Glass 采用指南](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)、[材质规范](https://developer.apple.com/design/human-interface-guidelines/materials)。
 
@@ -101,7 +103,7 @@ Sources/TietiezhiTools/
 ├── Runtime/     # 通用动作执行与 Carbon 全局热键
 └── Views/       # 原生商店、插件配置、录制器与设置
 Plugins/         # 所有插件源码及统一商店目录
-Tests/           # 安装、校验、生命周期、冲突与原生热键事件测试
+Tests/           # 安装、校验、热键事件与窗口布局回归检查
 Resources/       # Info.plist 与沙盒权限
 scripts/         # 本地构建与插件打包
 ```

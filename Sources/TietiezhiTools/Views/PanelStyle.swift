@@ -1,9 +1,10 @@
 import SwiftUI
 
 enum PanelLayout {
+    static let coordinateSpace = "panel.content"
     static let sidebarWidth: CGFloat = 224
-    static let contentInset: CGFloat = 24
-    static let rowInset: CGFloat = 20
+    static let contentInset: CGFloat = 28
+    static let rowInset: CGFloat = 18
     static let itemSpacing: CGFloat = 16
     static let iconSize: CGFloat = 40
     static let actionWidth: CGFloat = 76
@@ -29,35 +30,74 @@ struct PanelIcon: View {
     }
 }
 
-struct PanelActionBar<Content: View>: View {
-    @ViewBuilder let content: Content
+extension View {
+    func panelNavigationSurface() -> some View {
+        modifier(PanelNavigationSurface())
+    }
 
-    var body: some View {
-        HStack(spacing: 12) {
-            content
+    func panelRegion(_ identifier: String) -> some View {
+        #if DEBUG
+        self.background {
+            GeometryReader { geometry in
+                Color.clear.preference(
+                    key: PanelLayoutBoundsKey.self,
+                    value: [identifier: geometry.frame(in: .named(PanelLayout.coordinateSpace))]
+                )
+            }
+            .allowsHitTesting(false)
         }
-        .font(.callout)
-        .controlSize(.regular)
-        .buttonStyle(.borderless)
-        .padding(.horizontal, PanelLayout.itemSpacing)
-        .padding(.vertical, 12)
-        .frame(minHeight: 52)
-        .modifier(PanelGlassSurface())
-        .padding(.horizontal, PanelLayout.contentInset)
-        .padding(.vertical, 16)
+        .accessibilityIdentifier(identifier)
+        #else
+        self.accessibilityIdentifier(identifier)
+        #endif
     }
 }
 
-private struct PanelGlassSurface: ViewModifier {
+#if DEBUG
+// 布局回归检查读取实际渲染坐标；Release 不安装这些测量视图。
+struct PanelLayoutBoundsKey: PreferenceKey {
+    static let defaultValue: [String: CGRect] = [:]
+
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, next in next })
+    }
+}
+#endif
+
+private struct PanelNavigationSurface: ViewModifier {
     func body(content: Content) -> some View {
         #if compiler(>=6.2)
         if #available(macOS 26, *) {
-            content.glassEffect(.regular, in: .rect(cornerRadius: 16))
+            content.glassEffect(.regular, in: .rect(cornerRadius: 0))
         } else {
-            content.background(.bar, in: RoundedRectangle(cornerRadius: 16))
+            content.background(.bar)
         }
         #else
-        content.background(.bar, in: RoundedRectangle(cornerRadius: 16))
+        content.background(.bar)
         #endif
+    }
+}
+
+struct PanelSearchField: View {
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            TextField("搜索插件", text: $text)
+                .textFieldStyle(.plain)
+                .accessibilityLabel("搜索插件")
+            if !text.isEmpty {
+                Button { text = "" } label: { Image(systemName: "xmark.circle.fill") }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("清除搜索")
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 34)
+        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
     }
 }
