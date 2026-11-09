@@ -6,13 +6,17 @@
 
 ## 使用
 
+0.3.0 新增[截图插件](Plugins/screenshot/README.md)：全局截图快捷键、区域/窗口/全屏、多显示器、置顶贴图、箭头/文字/马赛克/实色遮挡等标注、横纵滚动长图、录屏与 GIF、本地 OCR/条码、系统翻译、CSV/XLSX 表格、LaTeX 公式、Word/Markdown/可搜索 PDF 文档导出。复杂图像识别可选接入自己的视觉模型，密钥保存在钥匙串，发送图片前须确认。录屏和系统翻译需要 macOS 15+，macOS 26+ 另支持本地文档结构识别。
+
+在商店安装「截图」，进入插件的「快捷键」页绑定操作。首次截图/录屏需要屏幕录制权限；导入图片、标注、OCR 和贴图可先使用。窗口关闭后，仍可用全局快捷键或菜单栏调用；退出前会结束并保存正在进行的录屏。详细功能、权限及边界见插件说明。
+
 ```bash
 git clone https://github.com/tietiezhi-1216/tietiezhi-tools.git
 cd tietiezhi-tools
 ./scripts/run.sh
 ```
 
-需要支持 Swift 6 的 Xcode Command Line Tools 或 Xcode 16+。未安装命令行工具时，先运行 `xcode-select --install`。
+源码构建需要 Xcode 26+，或包含 macOS 26+ SDK 的 Swift 6 命令行工具；运行截图等基础功能仍支持 macOS 14+。未安装命令行工具时，先运行 `xcode-select --install`。
 
 1. 在首页“插件商店”中安装 **全局快捷键**。
 2. 在侧边栏打开插件，点击“添加操作”。
@@ -74,7 +78,7 @@ cd tietiezhi-tools
 swift build
 swift test
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.2.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.3.0 --write-catalog
 ```
 
 构建结果位于 `dist/debug/Tietiezhi Tools.app` 或 `dist/release/Tietiezhi Tools.app`。终端脚本使用当前 Mac 的架构和本地临时签名，适合开发；未启用 App Sandbox / Hardened Runtime，也没有 Developer ID 签名或公证。
@@ -85,7 +89,7 @@ Xcode 开发入口：
 open TietiezhiTools.xcodeproj
 ```
 
-选择 `TietiezhiTools` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 保留 App Sandbox / Hardened Runtime，并声明网络下载、用户选择文件读取和应用级书签权限。正式分发需配置自己的签名、图标和公证。
+选择 `TietiezhiTools` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 保留 App Sandbox / Hardened Runtime，并声明网络访问、用户选择文件读写、应用级书签以及可选摄像头/麦克风权限；实际使用时仍需系统授权。正式分发需配置自己的签名、图标和公证。
 
 Swift Package 与 Xcode 工程共用 `Sources/TietiezhiTools`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
 
@@ -100,12 +104,13 @@ TIETIEZHI_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
 ```text
 Sources/TietiezhiTools/
 ├── App/         # 窗口、菜单栏和统一外观
+├── Capture/     # 截图、编辑、贴图、滚动拼接、录制、OCR 与文档导出
 ├── Models/      # 应用外观设置
 ├── Plugins/     # 插件规范、目录、ZIP 安装和配置存储
 ├── Runtime/     # 通用动作执行与 Carbon 全局热键
 └── Views/       # 原生商店、插件配置、录制器与设置
 Plugins/         # 所有插件源码及统一商店目录
-Tests/           # 安装、校验、热键事件与窗口布局回归检查
+Tests/           # 安装、校验、热键、布局、图像处理、拼接、识别和媒体导出检查
 Resources/       # Info.plist 与沙盒权限
 scripts/         # 本地构建与插件打包
 ```

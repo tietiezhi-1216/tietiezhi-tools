@@ -11,12 +11,28 @@ final class PluginStore: ObservableObject {
     @Published private(set) var catalogError: String?
     @Published private(set) var hotKeyErrors: [UUID: String] = [:]
     @Published var errorMessage: String?
+    @Published var requestedPluginID: String?
     var showMainWindow: () -> Void = {}
+    private let captureDirectory: URL?
+    private var captureController: ScreenshotController?
+    var screenshots: ScreenshotController {
+        if let captureController { return captureController }
+        let controller = ScreenshotController(directory: captureDirectory)
+        controller.canUseFeatures = { [weak self] in
+            self?.installed.contains(where: { $0.isEnabled && $0.manifest.actions.contains(where: \.isScreenshotAction) }) == true
+        }
+        captureController = controller
+        return controller
+    }
+    func prepareForQuit() async { await captureController?.prepareForQuit() }
+
+    var screenshotPlugin: InstalledPlugin? { installed.first { $0.isEnabled && $0.manifest.hasScreenshotWorkspace } }
 
     private let directory: URL
     private let hotKeys = HotKeyManager()
 
-    init(directory: URL? = nil) {
+    init(directory: URL? = nil, captureDirectory: URL? = nil) {
+        self.captureDirectory = captureDirectory
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("com.tietiezhi.tools/Plugins", isDirectory: true)
         do {
@@ -111,6 +127,10 @@ final class PluginStore: ObservableObject {
         guard var record = installed.first(where: { $0.id == pluginID }) else { return }
         record.isEnabled = enabled
         do { try save(record) } catch { errorMessage = error.localizedDescription }
+        if record.manifest.hasScreenshotWorkspace {
+            if !enabled { screenshots.deactivate() }
+            else { captureController?.objectWillChange.send() }
+        }
     }
 
     func saveCommand(_ command: PluginCommand, pluginID: String) throws {
@@ -142,6 +162,7 @@ final class PluginStore: ObservableObject {
     func uninstall(_ pluginID: String) {
         guard installed.contains(where: { $0.id == pluginID }) else { return }
         do {
+            if installed.first(where: { $0.id == pluginID })?.manifest.hasScreenshotWorkspace == true { screenshots.deactivate() }
             try FileManager.default.removeItem(at: directory.appendingPathComponent(pluginID + ".json"))
             installed.removeAll { $0.id == pluginID }
             reloadHotKeys()
@@ -151,8 +172,23 @@ final class PluginStore: ObservableObject {
     func execute(_ command: PluginCommand, pluginID: String) async {
         guard let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled, command.isEnabled,
               plugin.commands.contains(command), plugin.manifest.actions.contains(command.action) else { return }
-        do { try await ActionExecutor.execute(command, showMainWindow: showMainWindow) }
+        do {
+            try await ActionExecutor.execute(command, showMainWindow: showMainWindow) { [self] action in
+                try await performScreenshot(action, pluginID: pluginID)
+            }
+        }
         catch { errorMessage = "执行失败：\(error.localizedDescription)"; showMainWindow() }
+    }
+
+    func performScreenshot(_ action: ActionKind, pluginID: String) async throws {
+        guard action.isScreenshotAction,
+              let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled,
+              plugin.manifest.actions.contains(action) else { throw PluginError.invalid("请先启用截图插件。") }
+        screenshots.showHistory = { [weak self] in
+            self?.requestedPluginID = pluginID
+            self?.showMainWindow()
+        }
+        try await screenshots.perform(action)
     }
 
     private func save(_ record: InstalledPlugin) throws {

@@ -18,16 +18,16 @@
 | `actions` | 插件贡献的操作类型 |
 | `templates` | “添加操作”中的模板；每项包含 `id`、`title`、`action` |
 
-主程序是声明式插件宿主，提供通用的配置界面、动作执行、快捷键注册、安装和存储；不会根据插件 ID 选择特殊业务页面。插件贡献操作模板，用户的具体目标、快捷键和启停状态只保存在本机。
+主程序是声明式插件宿主，提供通用的配置界面、动作执行、快捷键注册、安装和存储。页面按能力声明展示：普通操作使用快捷键列表，声明截图能力的插件使用原生截图工作区；不按插件 ID 硬编码页面。用户的具体目标、快捷键和启停状态只保存在本机。
 
-当前支持 `openApplication`、`openURL`、`runShortcut`、`showMainWindow`。新增这些能力范围内的插件无需修改或重新编译主程序；新增原生能力需要先扩展宿主 API。本版不会动态加载 Swift 二进制、JavaScript 或 Shell 脚本。
+支持 `openApplication`、`openURL`、`runShortcut`、`showMainWindow`。0.3.0 新增 `captureRegion`、`captureWindow`、`captureScreen`、`captureScrolling`、`captureRecording`、`pinClipboard`、`togglePins`、`captureHistory`，参考[截图插件](screenshot/README.md)。新增这些能力范围内的插件无需修改或重新编译主程序；新增原生能力需要先扩展宿主 API。本版不会动态加载 Swift 二进制、JavaScript 或 Shell 脚本。
 
 安装包不提供默认全局快捷键，不会在安装时执行操作。用户配置后才可执行或注册热键。
 
 ## 发布插件
 
 ```bash
-python3 scripts/package-plugins.py --tag v0.2.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.3.0 --write-catalog
 ```
 
 将更新的清单和 `catalog.json` 提交，创建同名 GitHub Release，并上传 `dist/plugins/*.zip`。不要在发布后替换同版本资产，否则 SHA-256 会不匹配；更新插件时应递增版本。源码、商店目录和下载资产必须保持一致。

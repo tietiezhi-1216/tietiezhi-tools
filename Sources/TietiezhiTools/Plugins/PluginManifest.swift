@@ -1,7 +1,7 @@
 import Foundation
 
 enum HostInfo {
-    static let version = "0.2.0"
+    static let version = "0.3.0"
     static let repository = URL(string: "https://github.com/tietiezhi-1216/tietiezhi-tools")!
     static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/catalog.json")!
 }
@@ -27,6 +27,9 @@ struct PluginManifest: Codable, Equatable, Sendable, Identifiable {
     let minimumHostVersion: String
     let actions: [ActionKind]
     let templates: [CommandTemplate]
+
+    var hasScreenshotWorkspace: Bool { actions.contains(.captureRegion) }
+    var symbol: String { hasScreenshotWorkspace ? "camera.viewfinder" : "puzzlepiece.extension" }
 
     func validate() throws {
         guard schemaVersion == 1 else { throw PluginError.invalid("不支持这个插件格式，请更新主程序。") }
@@ -67,6 +70,15 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
     case openURL
     case runShortcut
     case showMainWindow
+    case captureRegion, captureWindow, captureScreen, captureScrolling, captureRecording
+    case pinClipboard, togglePins, captureHistory
+
+    var isScreenshotAction: Bool {
+        switch self {
+        case .openApplication, .openURL, .runShortcut, .showMainWindow: false
+        default: true
+        }
+    }
 
     var title: String {
         switch self {
@@ -74,6 +86,14 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .openURL: "打开网址"
         case .runShortcut: "运行快捷指令"
         case .showMainWindow: "显示主面板"
+        case .captureRegion: "区域截图"
+        case .captureWindow: "窗口截图"
+        case .captureScreen: "全屏截图"
+        case .captureScrolling: "滚动长截图"
+        case .captureRecording: "开始或停止录屏"
+        case .pinClipboard: "剪贴板贴图"
+        case .togglePins: "隐藏或显示贴图"
+        case .captureHistory: "打开截图历史"
         }
     }
 
@@ -83,6 +103,14 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .openURL: "link"
         case .runShortcut: "command.square"
         case .showMainWindow: "macwindow"
+        case .captureRegion: "viewfinder"
+        case .captureWindow: "macwindow"
+        case .captureScreen: "display"
+        case .captureScrolling: "scroll"
+        case .captureRecording: "record.circle"
+        case .pinClipboard: "pin"
+        case .togglePins: "eye"
+        case .captureHistory: "clock"
         }
     }
 
@@ -101,7 +129,8 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
             guard !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, target.count <= 500 else {
                 throw PluginError.invalid("请输入 macOS「快捷指令」中的名称。")
             }
-        case .showMainWindow: break
+        case .showMainWindow, .captureRegion, .captureWindow, .captureScreen, .captureScrolling,
+             .captureRecording, .pinClipboard, .togglePins, .captureHistory: break
         }
     }
 }
@@ -141,7 +170,8 @@ struct PluginCommand: Codable, Equatable, Sendable, Identifiable {
             return "打开 \(destination)"
         case .runShortcut:
             return "运行快捷指令：\(value)"
-        case .showMainWindow:
+        case .showMainWindow, .captureRegion, .captureWindow, .captureScreen, .captureScrolling,
+             .captureRecording, .pinClipboard, .togglePins, .captureHistory:
             return action.title
         }
     }

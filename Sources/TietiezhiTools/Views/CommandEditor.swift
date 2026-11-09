@@ -53,6 +53,10 @@ struct CommandEditor: View {
                 case .showMainWindow:
                     Text("将主面板带到前台；窗口已关闭时会重新打开。")
                         .font(.callout).foregroundStyle(.secondary)
+                case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
+                     .pinClipboard, .togglePins, .captureHistory:
+                    Text("绑定后可在任意应用中执行此截图操作。首次截屏或录屏时需要允许屏幕录制权限。")
+                        .font(.callout).foregroundStyle(.secondary)
                 }
 
                 LabeledContent("全局快捷键") {

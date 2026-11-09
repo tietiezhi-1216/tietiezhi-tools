@@ -23,6 +23,14 @@
 		CA21B623D4CC1133FDFE7E5F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCDEEFA91BAF8AD35D711CD1 /* SettingsView.swift */; };
 		E16BAD76C88CCB681A9D105A /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A885F2DFD2B7D10EFA4FCC /* ShortcutRecorder.swift */; };
 		A342B2785828FA725849DCD5 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96F2B20C58AFE6F6D9D19F9 /* ViewState.swift */; };
+		C73AF68AA50E285308E9A805 /* CaptureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F396333C22C6CB76992D44F6 /* CaptureEditorView.swift */; };
+		F36C768AAAAFBE487A709A30 /* CaptureImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C97E0DF3E1DC6A66686372 /* CaptureImage.swift */; };
+		44BDC9D2891FDDB3FC54AEFD /* CaptureIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFECB8DFBF9F2F5AF7D301B8 /* CaptureIntelligence.swift */; };
+		714F18EBC9401452B123B012 /* CaptureRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4060712140D1D3A0E2337C46 /* CaptureRecorder.swift */; };
+		815A98F462724B7488263A44 /* CaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A7219A8292E21D8D9F456C /* CaptureService.swift */; };
+		F66804CF38E242613630A6C2 /* ScreenshotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9281CCD5EAA169B9435A589A /* ScreenshotController.swift */; };
+		D0B28F5553D99B122284488B /* ScreenshotPluginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093E1640DD777C1C43E408EB /* ScreenshotPluginView.swift */; };
+		33B95B3AF88BE3A6EC79906B /* CaptureOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +56,14 @@
 		A3A885F2DFD2B7D10EFA4FCC /* ShortcutRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorder.swift; sourceTree = "<group>"; };
 		D96F2B20C58AFE6F6D9D19F9 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* TietiezhiTools.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TietiezhiTools.entitlements; sourceTree = "<group>"; };
+		F396333C22C6CB76992D44F6 /* CaptureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEditorView.swift; sourceTree = "<group>"; };
+		84C97E0DF3E1DC6A66686372 /* CaptureImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureImage.swift; sourceTree = "<group>"; };
+		CFECB8DFBF9F2F5AF7D301B8 /* CaptureIntelligence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureIntelligence.swift; sourceTree = "<group>"; };
+		4060712140D1D3A0E2337C46 /* CaptureRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRecorder.swift; sourceTree = "<group>"; };
+		81A7219A8292E21D8D9F456C /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
+		9281CCD5EAA169B9435A589A /* ScreenshotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotController.swift; sourceTree = "<group>"; };
+		093E1640DD777C1C43E408EB /* ScreenshotPluginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotPluginView.swift; sourceTree = "<group>"; };
+		E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureOverlays.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				11B4D3BA8AED401619B0EC79 /* App */,
+				20BF2DD8B154514F23DA8897 /* Capture */,
 				22D00513236BA126D92BCCF8 /* Models */,
 				546B09B18166645FBEDD2DC6 /* Plugins */,
 				DB1333B55FBD662B0746366D /* Runtime */,
@@ -147,6 +164,21 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		20BF2DD8B154514F23DA8897 /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */,
+				F396333C22C6CB76992D44F6 /* CaptureEditorView.swift */,
+				84C97E0DF3E1DC6A66686372 /* CaptureImage.swift */,
+				CFECB8DFBF9F2F5AF7D301B8 /* CaptureIntelligence.swift */,
+				4060712140D1D3A0E2337C46 /* CaptureRecorder.swift */,
+				81A7219A8292E21D8D9F456C /* CaptureService.swift */,
+				9281CCD5EAA169B9435A589A /* ScreenshotController.swift */,
+				093E1640DD777C1C43E408EB /* ScreenshotPluginView.swift */,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -202,6 +234,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33B95B3AF88BE3A6EC79906B /* CaptureOverlays.swift in Sources */,
+				C73AF68AA50E285308E9A805 /* CaptureEditorView.swift in Sources */,
+				F36C768AAAAFBE487A709A30 /* CaptureImage.swift in Sources */,
+				44BDC9D2891FDDB3FC54AEFD /* CaptureIntelligence.swift in Sources */,
+				714F18EBC9401452B123B012 /* CaptureRecorder.swift in Sources */,
+				815A98F462724B7488263A44 /* CaptureService.swift in Sources */,
+				F66804CF38E242613630A6C2 /* ScreenshotController.swift in Sources */,
+				D0B28F5553D99B122284488B /* ScreenshotPluginView.swift in Sources */,
 				B00000000000000000000003 /* PanelWindowChrome.swift in Sources */,
 				B00000000000000000000001 /* PanelStyle.swift in Sources */,
 				0B895FF7A30AA4B90EB14388 /* TietiezhiToolsApp.swift in Sources */,

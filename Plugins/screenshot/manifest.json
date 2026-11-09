@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "com.tietiezhi.screenshot",
+  "name": "截图",
+  "version": "1.0.0",
+  "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
+  "author": "tietiezhi-1216",
+  "repository": "https://github.com/tietiezhi-1216/tietiezhi-tools",
+  "minimumHostVersion": "0.3.0",
+  "actions": ["captureRegion", "captureWindow", "captureScreen", "captureScrolling", "captureRecording", "pinClipboard", "togglePins", "captureHistory"],
+  "templates": [
+    {"id": "region", "title": "区域截图", "action": "captureRegion"},
+    {"id": "window", "title": "窗口截图", "action": "captureWindow"},
+    {"id": "screen", "title": "全屏截图", "action": "captureScreen"},
+    {"id": "scroll", "title": "滚动长截图", "action": "captureScrolling"},
+    {"id": "record", "title": "开始或停止录屏", "action": "captureRecording"},
+    {"id": "pin", "title": "剪贴板贴图", "action": "pinClipboard"},
+    {"id": "toggle-pins", "title": "隐藏或显示贴图", "action": "togglePins"},
+    {"id": "history", "title": "打开截图历史", "action": "captureHistory"}
+  ]
+}

@@ -121,6 +121,9 @@ struct PluginDetailView: View {
             "运行 macOS 快捷指令"
         case .showMainWindow:
             "将工具箱主窗口带到前台"
+        case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
+             .pinClipboard, .togglePins, .captureHistory:
+            "全局截图操作"
         }
     }
 }

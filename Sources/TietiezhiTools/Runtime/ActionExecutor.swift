@@ -2,7 +2,8 @@ import AppKit
 
 @MainActor
 enum ActionExecutor {
-    static func execute(_ command: PluginCommand, showMainWindow: () -> Void) async throws {
+    static func execute(_ command: PluginCommand, showMainWindow: () -> Void,
+                        screenshotAction: (ActionKind) async throws -> Void = { _ in throw PluginError.invalid("截图插件尚未准备好。") }) async throws {
         try command.action.validateTarget(command.target)
         switch command.action {
         case .openApplication:
@@ -34,6 +35,9 @@ enum ActionExecutor {
             }
         case .showMainWindow:
             showMainWindow()
+        case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
+             .pinClipboard, .togglePins, .captureHistory:
+            try await screenshotAction(command.action)
         }
     }
 }

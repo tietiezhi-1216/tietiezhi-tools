@@ -7,8 +7,17 @@
       "version": "1.0.0",
       "summary": "用自定义快捷键打开应用、打开网址、运行 macOS 快捷指令，或唤起主面板。",
       "author": "tietiezhi-1216",
-      "downloadURL": "https://github.com/tietiezhi-1216/tietiezhi-tools/releases/download/v0.2.0/global-shortcuts-1.0.0.zip",
+      "downloadURL": "https://github.com/tietiezhi-1216/tietiezhi-tools/releases/download/v0.3.0/global-shortcuts-1.0.0.zip",
       "sha256": "27c6e19dc0e939f10d20b6870776415b0140ecfd2e7da05c75e88be7a21ec1c7"
+    },
+    {
+      "id": "com.tietiezhi.screenshot",
+      "name": "截图",
+      "version": "1.0.0",
+      "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
+      "author": "tietiezhi-1216",
+      "downloadURL": "https://github.com/tietiezhi-1216/tietiezhi-tools/releases/download/v0.3.0/screenshot-1.0.0.zip",
+      "sha256": "b3a96e93d68b1b696c440e63d51e7d6cdb73795e0b9343559a2fec2192cb56f9"
     }
   ]
 }

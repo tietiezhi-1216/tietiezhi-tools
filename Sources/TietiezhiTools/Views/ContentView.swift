@@ -28,7 +28,11 @@ struct ContentView: View {
                 pageHeader
                 Group {
                     if let plugin = selectedPlugin {
-                        PluginDetailView(pluginID: plugin.id)
+                        if plugin.manifest.hasScreenshotWorkspace {
+                            ScreenshotPluginView(pluginID: plugin.id, capture: store.screenshots)
+                        } else {
+                            PluginDetailView(pluginID: plugin.id)
+                        }
                     } else {
                         PluginStoreView { selection = $0 }
                     }
@@ -63,6 +67,10 @@ struct ContentView: View {
                 action(id: "main")
                 NSApplication.shared.activate(ignoringOtherApps: true)
             }
+            if let id = store.requestedPluginID { selection = id; store.requestedPluginID = nil }
+        }
+        .onChange(of: store.requestedPluginID) { _, id in
+            if let id { selection = id; store.requestedPluginID = nil }
         }
         .alert("操作未完成", isPresented: Binding(
             get: { store.errorMessage != nil },
@@ -94,7 +102,7 @@ struct ContentView: View {
                     ForEach(store.installed) { plugin in
                         navigationItem(
                             plugin.manifest.name,
-                            symbol: plugin.isEnabled ? "puzzlepiece.extension" : "pause.circle",
+                            symbol: plugin.isEnabled ? plugin.manifest.symbol : "pause.circle",
                             id: plugin.id
                         )
                     }
@@ -152,7 +160,7 @@ struct ContentView: View {
     private var pageHeader: some View {
         HStack(alignment: .center, spacing: 16) {
             if selectedPlugin != nil {
-                PanelIcon(symbol: "puzzlepiece.extension")
+                PanelIcon(symbol: selectedPlugin?.manifest.symbol ?? "puzzlepiece.extension")
                     .panelRegion("plugin.header.icon")
             }
 
