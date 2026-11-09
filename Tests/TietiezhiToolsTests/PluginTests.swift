@@ -56,6 +56,53 @@ struct PluginTests {
         try ActionKind.openURL.validateTarget("https://example.com")
     }
 
+    @Test func actionNamesFollowTheCurrentTarget() throws {
+        var command = PluginCommand(action: .openApplication)
+        #expect(command.title == "打开应用")
+        command.target = "/Applications/Safari.app"
+        #expect(command.title == "打开 Safari")
+        command.target = "/Applications/Visual Studio Code.app"
+        #expect(command.title == "打开 Visual Studio Code")
+
+        command.action = .openURL
+        command.target = "https://example.com/"
+        #expect(command.title == "打开 example.com")
+        command.target = "  https://example.com/work?view=team#today \n"
+        #expect(command.title == "打开 example.com/work?view=team#today")
+
+        command.action = .runShortcut
+        command.target = " 下班 \n"
+        #expect(command.title == "运行快捷指令：下班")
+        command.action = .showMainWindow
+        #expect(command.title == "显示主面板")
+        command.target = ""
+        try command.validate(allowedActions: [.showMainWindow])
+    }
+
+    @Test func legacyNamesAreIgnoredWithoutChangingBindings() throws {
+        let original = PluginCommand(
+            action: .openApplication, target: "/Applications/Safari.app",
+            applicationBookmark: Data([1, 2, 3]),
+            hotKey: HotKey(keyCode: 17, modifiers: UInt32(controlKey | optionKey), key: "T"),
+            isEnabled: false
+        )
+        var legacy = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(original)) as? [String: Any])
+        legacy["title"] = "之前手动取的名字"
+        let decoded = try JSONDecoder().decode(PluginCommand.self, from: JSONSerialization.data(withJSONObject: legacy))
+        #expect(decoded == original)
+        #expect(decoded.title == "打开 Safari")
+
+        var edited = decoded
+        edited.target = "/System/Applications/Notes.app"
+        #expect(edited.title == "打开 Notes")
+        #expect(edited.id == original.id)
+        #expect(edited.hotKey == original.hotKey)
+        #expect(edited.applicationBookmark == original.applicationBookmark)
+        #expect(edited.isEnabled == original.isEnabled)
+        let saved = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(edited)) as? [String: Any])
+        #expect(saved["title"] == nil)
+    }
+
     @Test @MainActor func installConfigureUpdateDisableAndUninstall() async throws {
         _ = NSApplication.shared
         let directory = try temporaryDirectory()
@@ -64,7 +111,7 @@ struct PluginTests {
         try store.installManifest(manifest())
         #expect(store.installed.count == 1)
         #expect(store.installed[0].commands.isEmpty)
-        let command = PluginCommand(title: "主面板", action: .showMainWindow)
+        let command = PluginCommand(action: .showMainWindow)
         try store.saveCommand(command, pluginID: manifest().id)
         try store.installManifest(manifest(version: "1.1.0"))
         #expect(store.installed[0].commands == [command])
@@ -93,10 +140,10 @@ struct PluginTests {
         let store = PluginStore(directory: directory)
         try store.installManifest(manifest())
         let key = HotKey(keyCode: UInt32(kVK_F19), modifiers: UInt32(cmdKey | optionKey | controlKey | shiftKey), key: "F19")
-        let first = PluginCommand(title: "第一个", action: .showMainWindow, hotKey: key)
+        let first = PluginCommand(action: .showMainWindow, hotKey: key)
         try store.saveCommand(first, pluginID: manifest().id)
         #expect(store.hotKeyErrors.isEmpty)
-        let second = PluginCommand(title: "第二个", action: .showMainWindow, hotKey: key)
+        let second = PluginCommand(action: .showMainWindow, hotKey: key)
         #expect(throws: PluginError.self) { try store.saveCommand(second, pluginID: manifest().id) }
         #expect(store.installed[0].commands.count == 1)
         store.setEnabled(false, pluginID: manifest().id)
@@ -163,10 +210,13 @@ struct PluginTests {
                 schemaVersion: 1, id: "com.tietiezhi.layout", name: longText ? String(repeating: "长标题", count: 20) : "全局快捷键",
                 version: "1.0.0", summary: longText ? String(repeating: "验证窄窗口中说明换行后仍然能看到全部操作。", count: 20) : "使用快捷键打开应用、打开网址或显示主面板。",
                 author: "Tests", repository: HostInfo.repository, minimumHostVersion: "0.2.0",
-                actions: [.showMainWindow], templates: []
+                actions: [.showMainWindow, .openURL], templates: []
             )
             try store.installManifest(plugin)
-            let command = PluginCommand(title: longText ? String(repeating: "操作名称", count: 20) : "显示主面板", action: .showMainWindow)
+            let command = PluginCommand(
+                action: longText ? .openURL : .showMainWindow,
+                target: longText ? "https://example.com/" + String(repeating: "very-long-path/", count: 20) : ""
+            )
             try store.saveCommand(command, pluginID: plugin.id)
             let observation = PanelBoundsObservation()
             let root = ContentView(initialSelection: plugin.id)

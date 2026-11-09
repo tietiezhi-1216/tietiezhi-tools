@@ -50,13 +50,13 @@ struct PluginDetailView: View {
                     Menu {
                         ForEach(plugin.manifest.templates) { template in
                             Button(template.title) {
-                                editingCommand = PluginCommand(title: template.title, action: template.action)
+                                editingCommand = PluginCommand(action: template.action)
                             }
                         }
                         if plugin.manifest.templates.isEmpty {
                             ForEach(plugin.manifest.actions, id: \.self) { action in
                                 Button(action.title) {
-                                    editingCommand = PluginCommand(title: action.title, action: action)
+                                    editingCommand = PluginCommand(action: action)
                                 }
                             }
                         }
@@ -158,11 +158,11 @@ struct PluginDetailView: View {
     private func commandDescription(_ command: PluginCommand) -> String {
         switch command.action {
         case .openApplication:
-            command.target.isEmpty ? "尚未选择应用" : URL(fileURLWithPath: command.target).deletingPathExtension().lastPathComponent
+            "打开应用"
         case .openURL:
             command.target.isEmpty ? "尚未设置网址" : command.target
         case .runShortcut:
-            command.target.isEmpty ? "尚未设置快捷指令" : "快捷指令 · \(command.target)"
+            "运行 macOS 快捷指令"
         case .showMainWindow:
             "将工具箱主窗口带到前台"
         }

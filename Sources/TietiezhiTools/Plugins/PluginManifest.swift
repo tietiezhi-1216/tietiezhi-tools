@@ -114,18 +114,42 @@ struct CommandTemplate: Codable, Equatable, Sendable, Identifiable {
 
 struct PluginCommand: Codable, Equatable, Sendable, Identifiable {
     var id = UUID()
-    var title: String
     var action: ActionKind
     var target = ""
     var applicationBookmark: Data?
     var hotKey: HotKey?
     var isEnabled = true
 
+    // 名称由动作和目标派生；旧配置中的 title 字段由 Codable 自动忽略。
+    var title: String {
+        let value = target.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return action.title }
+        switch action {
+        case .openApplication:
+            let name = URL(fileURLWithPath: value).deletingPathExtension().lastPathComponent
+            return "打开 \(name)"
+        case .openURL:
+            var destination = value
+            for prefix in ["https://", "http://"] where value.lowercased().hasPrefix(prefix) {
+                destination = String(value.dropFirst(prefix.count))
+                break
+            }
+            if let url = URL(string: value), url.path.isEmpty || url.path == "/",
+               url.query == nil, url.fragment == nil, destination.hasSuffix("/") {
+                destination.removeLast()
+            }
+            return "打开 \(destination)"
+        case .runShortcut:
+            return "运行快捷指令：\(value)"
+        case .showMainWindow:
+            return action.title
+        }
+    }
+
     var isConfigured: Bool { (try? action.validateTarget(target)) != nil }
 
     func validate(allowedActions: [ActionKind]) throws {
-        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, title.count <= 100,
-              allowedActions.contains(action) else { throw PluginError.invalid("请输入名称，并选择插件支持的操作。") }
+        guard allowedActions.contains(action) else { throw PluginError.invalid("请选择插件支持的操作。") }
         try action.validateTarget(target)
         try hotKey?.validate()
     }

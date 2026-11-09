@@ -18,17 +18,22 @@ struct CommandEditor: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("配置操作")
+            Text(draft.title)
                 .font(.headline)
+                .lineLimit(2)
+                .help(draft.title)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, PanelLayout.contentInset)
                 .padding(.top, PanelLayout.contentInset)
             Form {
-                TextField("名称", text: $draft.title)
                 Picker("操作", selection: $draft.action) {
                     ForEach(actions, id: \.self) { action in Text(action.title).tag(action) }
                 }
-                .onChange(of: draft.action) { _, _ in draft.target = ""; draft.applicationBookmark = nil }
+                .onChange(of: draft.action) { _, _ in
+                    draft.target = ""
+                    draft.applicationBookmark = nil
+                    error = nil
+                }
 
                 switch draft.action {
                 case .openApplication:
@@ -75,12 +80,11 @@ struct CommandEditor: View {
             .padding(.top, 12)
         }
         .controlSize(.regular)
-        .frame(width: 600, height: 440)
+        .frame(width: 600, height: 400)
     }
 
     private func save() {
         do {
-            draft.title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
             draft.target = draft.target.trimmingCharacters(in: .whitespacesAndNewlines)
             try store.saveCommand(draft, pluginID: pluginID)
             dismiss()
@@ -98,9 +102,6 @@ struct CommandEditor: View {
             guard response == .OK, let url = panel.url else { return }
             draft.target = url.path
             draft.applicationBookmark = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-            if draft.title == ActionKind.openApplication.title {
-                draft.title = "打开 " + url.deletingPathExtension().lastPathComponent
-            }
         }
     }
 }
