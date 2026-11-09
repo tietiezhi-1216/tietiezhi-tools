@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "com.tietiezhi.global-shortcuts",
+  "name": "全局快捷键",
+  "version": "1.0.0",
+  "summary": "用自定义快捷键打开应用、打开网址、运行 macOS 快捷指令，或唤起主面板。",
+  "author": "tietiezhi-1216",
+  "repository": "https://github.com/tietiezhi-1216/tietiezhi-tools",
+  "minimumHostVersion": "0.2.0",
+  "actions": ["openApplication", "openURL", "runShortcut", "showMainWindow"],
+  "templates": [
+    {"id": "application", "title": "打开应用", "action": "openApplication"},
+    {"id": "website", "title": "打开网址", "action": "openURL"},
+    {"id": "shortcut", "title": "运行快捷指令", "action": "runShortcut"},
+    {"id": "panel", "title": "显示主面板", "action": "showMainWindow"}
+  ]
+}

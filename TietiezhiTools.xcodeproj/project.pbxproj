@@ -1,0 +1,310 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B895FF7A30AA4B90EB14388 /* TietiezhiToolsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD79D86815E48CF7EA5AAB /* TietiezhiToolsApp.swift */; };
+		0C7FE6ECF8043D33DE33268E /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FBBF785FE6F23FA6503CFC9 /* AppAppearance.swift */; };
+		C5048A750981FCABBC270093 /* PluginArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F62441A7E065808C432452 /* PluginArchive.swift */; };
+		A3E3B76246643AFDE5D263B8 /* PluginManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B105834281B51927B2147E45 /* PluginManifest.swift */; };
+		91D0A18D72773868FF5890F9 /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B15D684C13297F395C4A912 /* PluginStore.swift */; };
+		B2AC8DEE0437A505FCCFB0CF /* ActionExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C3AF362AD8399E6A182311 /* ActionExecutor.swift */; };
+		0343031240AC413A9FD49166 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6CAAFF41B79A8326B6C63F /* HotKey.swift */; };
+		1E79D75418236126FBEE69E3 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86B01EFAD2060A830C5C766E /* HotKeyManager.swift */; };
+		ADB486BF2251A7A9AE4FA5E9 /* CommandEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B2FC736B2AE6D1578B42C1 /* CommandEditor.swift */; };
+		0902083CFFD8260592FBE280 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAFA4AFA4549F3ACF1E34FB /* ContentView.swift */; };
+		BBF12F444124E6EA4DE12608 /* PluginDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8938B8CAB0EE925EB47B4514 /* PluginDetailView.swift */; };
+		9DB2215F8EBAEBE02C3AB08E /* PluginStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819C126DF646684CE61BA047 /* PluginStoreView.swift */; };
+		CA21B623D4CC1133FDFE7E5F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCDEEFA91BAF8AD35D711CD1 /* SettingsView.swift */; };
+		E16BAD76C88CCB681A9D105A /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A885F2DFD2B7D10EFA4FCC /* ShortcutRecorder.swift */; };
+		A342B2785828FA725849DCD5 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96F2B20C58AFE6F6D9D19F9 /* ViewState.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000007 /* Tietiezhi Tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tietiezhi Tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000008 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		B5FD79D86815E48CF7EA5AAB /* TietiezhiToolsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TietiezhiToolsApp.swift; sourceTree = "<group>"; };
+		8FBBF785FE6F23FA6503CFC9 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		13F62441A7E065808C432452 /* PluginArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginArchive.swift; sourceTree = "<group>"; };
+		B105834281B51927B2147E45 /* PluginManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManifest.swift; sourceTree = "<group>"; };
+		3B15D684C13297F395C4A912 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
+		A0C3AF362AD8399E6A182311 /* ActionExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionExecutor.swift; sourceTree = "<group>"; };
+		BD6CAAFF41B79A8326B6C63F /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		86B01EFAD2060A830C5C766E /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		D2B2FC736B2AE6D1578B42C1 /* CommandEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandEditor.swift; sourceTree = "<group>"; };
+		DFAFA4AFA4549F3ACF1E34FB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8938B8CAB0EE925EB47B4514 /* PluginDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginDetailView.swift; sourceTree = "<group>"; };
+		819C126DF646684CE61BA047 /* PluginStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStoreView.swift; sourceTree = "<group>"; };
+		FCDEEFA91BAF8AD35D711CD1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A3A885F2DFD2B7D10EFA4FCC /* ShortcutRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorder.swift; sourceTree = "<group>"; };
+		D96F2B20C58AFE6F6D9D19F9 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* TietiezhiTools.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TietiezhiTools.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* TietiezhiTools */,
+				A40000000000000000000006 /* Resources */,
+				A20000000000000000000009 /* Package.swift */,
+				A20000000000000000000008 /* README.md */,
+				A40000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* Resources */ = {
+			isa = PBXGroup;
+			children = (A20000000000000000000006 /* Info.plist */, A20000000000000000000010 /* TietiezhiTools.entitlements */);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (A20000000000000000000007 /* Tietiezhi Tools.app */);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* TietiezhiTools */ = {
+			isa = PBXGroup;
+			children = (
+				11B4D3BA8AED401619B0EC79 /* App */,
+				22D00513236BA126D92BCCF8 /* Models */,
+				546B09B18166645FBEDD2DC6 /* Plugins */,
+				DB1333B55FBD662B0746366D /* Runtime */,
+				9C2A3F0DB1E6F7465E998255 /* Views */,
+			);
+			path = Sources/TietiezhiTools;
+			sourceTree = "<group>";
+		};
+		11B4D3BA8AED401619B0EC79 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B5FD79D86815E48CF7EA5AAB /* TietiezhiToolsApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		22D00513236BA126D92BCCF8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8FBBF785FE6F23FA6503CFC9 /* AppAppearance.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		546B09B18166645FBEDD2DC6 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				13F62441A7E065808C432452 /* PluginArchive.swift */,
+				B105834281B51927B2147E45 /* PluginManifest.swift */,
+				3B15D684C13297F395C4A912 /* PluginStore.swift */,
+			);
+			path = Plugins;
+			sourceTree = "<group>";
+		};
+		DB1333B55FBD662B0746366D /* Runtime */ = {
+			isa = PBXGroup;
+			children = (
+				A0C3AF362AD8399E6A182311 /* ActionExecutor.swift */,
+				BD6CAAFF41B79A8326B6C63F /* HotKey.swift */,
+				86B01EFAD2060A830C5C766E /* HotKeyManager.swift */,
+			);
+			path = Runtime;
+			sourceTree = "<group>";
+		};
+		9C2A3F0DB1E6F7465E998255 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D2B2FC736B2AE6D1578B42C1 /* CommandEditor.swift */,
+				DFAFA4AFA4549F3ACF1E34FB /* ContentView.swift */,
+				8938B8CAB0EE925EB47B4514 /* PluginDetailView.swift */,
+				819C126DF646684CE61BA047 /* PluginStoreView.swift */,
+				FCDEEFA91BAF8AD35D711CD1 /* SettingsView.swift */,
+				A3A885F2DFD2B7D10EFA4FCC /* ShortcutRecorder.swift */,
+				D96F2B20C58AFE6F6D9D19F9 /* ViewState.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* TietiezhiTools */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000000000000000000002 /* Build configuration list for PBXNativeTarget "TietiezhiTools" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+				A60000000000000000000002 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = TietiezhiTools;
+			productName = "Tietiezhi Tools";
+			productReference = A20000000000000000000007 /* Tietiezhi Tools.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A70000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = A80000000000000000000001 /* Build configuration list for PBXProject "TietiezhiTools" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (zh_CN, en, Base);
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (A50000000000000000000001 /* TietiezhiTools */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A60000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B895FF7A30AA4B90EB14388 /* TietiezhiToolsApp.swift in Sources */,
+				0C7FE6ECF8043D33DE33268E /* AppAppearance.swift in Sources */,
+				C5048A750981FCABBC270093 /* PluginArchive.swift in Sources */,
+				A3E3B76246643AFDE5D263B8 /* PluginManifest.swift in Sources */,
+				91D0A18D72773868FF5890F9 /* PluginStore.swift in Sources */,
+				B2AC8DEE0437A505FCCFB0CF /* ActionExecutor.swift in Sources */,
+				0343031240AC413A9FD49166 /* HotKey.swift in Sources */,
+				1E79D75418236126FBEE69E3 /* HotKeyManager.swift in Sources */,
+				ADB486BF2251A7A9AE4FA5E9 /* CommandEditor.swift in Sources */,
+				0902083CFFD8260592FBE280 /* ContentView.swift in Sources */,
+				BBF12F444124E6EA4DE12608 /* PluginDetailView.swift in Sources */,
+				9DB2215F8EBAEBE02C3AB08E /* PluginStoreView.swift in Sources */,
+				CA21B623D4CC1133FDFE7E5F /* SettingsView.swift in Sources */,
+				E16BAD76C88CCB681A9D105A /* ShortcutRecorder.swift in Sources */,
+				A342B2785828FA725849DCD5 /* ViewState.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A90000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A90000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/TietiezhiTools.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				EXECUTABLE_NAME = TietiezhiTools;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tietiezhi.tools;
+				PRODUCT_NAME = "Tietiezhi Tools";
+			};
+			name = Debug;
+		};
+		A90000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/TietiezhiTools.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				EXECUTABLE_NAME = TietiezhiTools;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tietiezhi.tools;
+				PRODUCT_NAME = "Tietiezhi Tools";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000000000000000000001 /* Build configuration list for PBXProject "TietiezhiTools" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (A90000000000000000000001 /* Debug */, A90000000000000000000002 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000000000000000000002 /* Build configuration list for PBXNativeTarget "TietiezhiTools" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (A90000000000000000000003 /* Debug */, A90000000000000000000004 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A70000000000000000000001 /* Project object */;
+}

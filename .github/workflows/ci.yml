@@ -1,0 +1,24 @@
+name: macOS CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: xcodebuild -version
+      - name: Build and test
+        run: swift test
+      - name: Validate plugin packages
+        run: python3 scripts/package-plugins.py --tag v0.2.0
+      - name: Build app
+        run: ./scripts/build-app.sh release
+      - name: Build Xcode target
+        run: xcodebuild -project TietiezhiTools.xcodeproj -scheme TietiezhiTools -configuration Debug CODE_SIGNING_ALLOWED=NO build
