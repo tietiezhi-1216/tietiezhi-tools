@@ -3,45 +3,11 @@ import SwiftUI
 struct PluginDetailView: View {
     @EnvironmentObject private var store: PluginStore
     @ViewState private var editingCommand: PluginCommand?
-    @ViewState private var confirmUninstall = false
     let pluginID: String
 
     var body: some View {
         if let plugin = store.installed.first(where: { $0.id == pluginID }) {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .center, spacing: PanelLayout.itemSpacing) {
-                    PanelIcon(symbol: "puzzlepiece.extension")
-                    Text(plugin.manifest.summary)
-                        .font(.callout).foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .help(plugin.manifest.summary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Toggle("启用", isOn: Binding(
-                        get: { plugin.isEnabled },
-                        set: { store.setEnabled($0, pluginID: pluginID) }
-                    ))
-                    .toggleStyle(.switch).controlSize(.small)
-                    .fixedSize()
-                    .accessibilityLabel("启用插件")
-                    Menu {
-                        Link("查看源码", destination: plugin.manifest.repository)
-                        Divider()
-                        Button("卸载插件…", role: .destructive) { confirmUninstall = true }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .frame(width: 20, height: 24)
-                    }
-                    .menuIndicator(.hidden)
-                    .panelGlassButton(circular: true)
-                    .help("插件更多操作")
-                    .accessibilityLabel("插件更多操作")
-                }
-                .padding(.horizontal, PanelLayout.contentInset)
-                .padding(.vertical, 20)
-                .accessibilityElement(children: .contain)
-                .panelRegion("plugin.summary")
-
                 PanelDivider()
 
                 HStack {
@@ -99,11 +65,6 @@ struct PluginDetailView: View {
             .sheet(item: $editingCommand) { command in
                 CommandEditor(pluginID: pluginID, command: command, actions: plugin.manifest.actions)
                     .environmentObject(store)
-            }
-            .confirmationDialog("卸载「\(plugin.manifest.name)」？", isPresented: $confirmUninstall) {
-                Button("卸载", role: .destructive) { store.uninstall(pluginID) }
-            } message: {
-                Text("将移除该插件的本地配置，并释放全部快捷键。")
             }
         }
     }
@@ -165,6 +126,50 @@ struct PluginDetailView: View {
             "运行 macOS 快捷指令"
         case .showMainWindow:
             "将工具箱主窗口带到前台"
+        }
+    }
+}
+
+struct PluginHeaderControls: View {
+    @EnvironmentObject private var store: PluginStore
+    @ViewState private var confirmUninstall = false
+    let plugin: InstalledPlugin
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Toggle("启用", isOn: Binding(
+                get: { plugin.isEnabled },
+                set: { store.setEnabled($0, pluginID: plugin.id) }
+            ))
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .fixedSize()
+            .accessibilityLabel("启用插件")
+            .panelRegion("plugin.header.enabled")
+
+            Menu {
+                Link("查看源码", destination: plugin.manifest.repository)
+                Divider()
+                Button("卸载插件…", role: .destructive) { confirmUninstall = true }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(width: 18, height: 18)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .frame(width: 28, height: 28)
+            .background(.quaternary.opacity(0.4), in: Circle())
+            .help("插件更多操作")
+            .accessibilityLabel("插件更多操作")
+            .panelRegion("plugin.header.more")
+        }
+        .fixedSize()
+        .confirmationDialog("卸载「\(plugin.manifest.name)」？", isPresented: $confirmUninstall) {
+            Button("卸载", role: .destructive) { store.uninstall(plugin.id) }
+        } message: {
+            Text("将移除该插件的本地配置，并释放全部快捷键。")
         }
     }
 }
