@@ -152,6 +152,11 @@ struct ContentView: View {
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 16) {
+                if selectedPlugin != nil {
+                    PanelIcon(symbol: "puzzlepiece.extension")
+                        .panelRegion("plugin.header.icon")
+                }
+
                 VStack(alignment: .leading, spacing: 5) {
                     Text(selectedPlugin?.manifest.name ?? "插件商店")
                         .font(.system(size: 22, weight: .semibold))
@@ -164,6 +169,7 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
                 .panelWindowDragArea()
+                .panelRegion("panel.title")
 
                 if let plugin = selectedPlugin {
                     PluginHeaderControls(plugin: plugin)

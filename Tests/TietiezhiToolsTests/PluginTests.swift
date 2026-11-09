@@ -245,6 +245,8 @@ struct PluginTests {
                     let navigation = try #require(frames["navigation.__store__"])
                     let header = try #require(frames["panel.header"])
                     let heading = try #require(frames["panel.heading"])
+                    let title = try #require(frames["panel.title"])
+                    let icon = try #require(frames["plugin.header.icon"])
                     let summary = try #require(frames["plugin.summary"])
                     let enabled = try #require(frames["plugin.header.enabled"])
                     let more = try #require(frames["plugin.header.more"])
@@ -256,6 +258,11 @@ struct PluginTests {
                     #expect(controls.maxY <= navigation.minY)
                     #expect(header.minX >= sidebar.maxX)
                     #expect(header.contains(heading))
+                    #expect(heading.contains(title))
+                    #expect(heading.contains(icon))
+                    #expect(abs(icon.width - PanelLayout.iconSize) < 1)
+                    #expect(abs(icon.height - PanelLayout.iconSize) < 1)
+                    #expect(icon.maxX + 15 <= title.minX)
                     #expect(header.contains(summary))
                     #expect(heading.contains(enabled))
                     #expect(heading.contains(more))
@@ -267,7 +274,7 @@ struct PluginTests {
                     #expect(abs(summary.width - heading.width) < 1)
                     #expect(header.maxY <= toolbar.minY + 1)
                     #expect(toolbar.maxY <= row.minY + 1)
-                    for region in [sidebar, controls, navigation, header, heading, summary, enabled, more, toolbar, row] {
+                    for region in [sidebar, controls, navigation, header, heading, title, icon, summary, enabled, more, toolbar, row] {
                         #expect(bounds.contains(region))
                     }
                     #expect(window.styleMask.contains(.fullSizeContentView))

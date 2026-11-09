@@ -8,8 +8,6 @@ struct PluginDetailView: View {
     var body: some View {
         if let plugin = store.installed.first(where: { $0.id == pluginID }) {
             VStack(alignment: .leading, spacing: 0) {
-                PanelDivider()
-
                 HStack {
                     Text("操作").font(.headline)
                     Spacer()
@@ -37,13 +35,10 @@ struct PluginDetailView: View {
                 .accessibilityElement(children: .contain)
                 .panelRegion("plugin.commands.toolbar")
 
-                PanelDivider()
-
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
+                    LazyVStack(alignment: .leading, spacing: 4) {
                         ForEach(plugin.commands) { command in
                             commandRow(command, plugin: plugin)
-                            if command.id != plugin.commands.last?.id { PanelDivider() }
                         }
                     }
                 }
