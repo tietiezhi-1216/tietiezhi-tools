@@ -128,6 +128,7 @@ struct PluginDetailView: View {
 struct PluginHeaderControls: View {
     @EnvironmentObject private var store: PluginStore
     @ViewState private var confirmUninstall = false
+    @ViewState private var showingInfo = false
     let plugin: InstalledPlugin
 
     var body: some View {
@@ -159,6 +160,31 @@ struct PluginHeaderControls: View {
             .help("插件更多操作")
             .accessibilityLabel("插件更多操作")
             .panelRegion("plugin.header.more")
+
+            Button { showingInfo.toggle() } label: {
+                Image(systemName: "info")
+                    .font(.system(size: 15))
+                    .frame(width: 18, height: 18)
+            }
+            .panelGlassButton(circular: true)
+            .help("查看插件简介")
+            .accessibilityLabel("插件简介")
+            .panelRegion("plugin.header.info")
+            .popover(isPresented: $showingInfo, arrowEdge: .top) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(plugin.manifest.name)
+                        .font(.headline)
+                    ViewThatFits(in: .vertical) {
+                        summaryText
+                        ScrollView { summaryText }
+                    }
+                    .frame(maxHeight: 280)
+                }
+                .padding(20)
+                .frame(width: 340)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("插件简介")
+            }
         }
         .fixedSize()
         .confirmationDialog("卸载「\(plugin.manifest.name)」？", isPresented: $confirmUninstall) {
@@ -166,5 +192,12 @@ struct PluginHeaderControls: View {
         } message: {
             Text("将移除该插件的本地配置，并释放全部快捷键。")
         }
+    }
+
+    private var summaryText: some View {
+        Text(plugin.manifest.summary)
+            .font(.callout).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

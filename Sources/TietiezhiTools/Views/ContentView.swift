@@ -150,54 +150,42 @@ struct ContentView: View {
     }
 
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 16) {
-                if selectedPlugin != nil {
-                    PanelIcon(symbol: "puzzlepiece.extension")
-                        .panelRegion("plugin.header.icon")
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(selectedPlugin?.manifest.name ?? "插件商店")
-                        .font(.system(size: 22, weight: .semibold))
-                        .lineLimit(1)
-                    Text(selectedPlugin.map { "\($0.manifest.author) · 版本 \($0.manifest.version)" }
-                         ?? "发现并安装你的常用工具")
-                        .font(.callout).foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .panelWindowDragArea()
-                .panelRegion("panel.title")
-
-                if let plugin = selectedPlugin {
-                    PluginHeaderControls(plugin: plugin)
-                        .id(plugin.id)
-                }
-
-                SettingsLink {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 15))
-                        .frame(width: 18, height: 18)
-                }
-                .panelGlassButton(circular: true)
-                .help("设置（⌘,）")
-                .accessibilityLabel("设置")
+        HStack(alignment: .center, spacing: 16) {
+            if selectedPlugin != nil {
+                PanelIcon(symbol: "puzzlepiece.extension")
+                    .panelRegion("plugin.header.icon")
             }
-            .panelRegion("panel.heading")
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(selectedPlugin?.manifest.name ?? "插件商店")
+                    .font(.system(size: 22, weight: .semibold))
+                    .lineLimit(1)
+                Text(selectedPlugin.map { "\($0.manifest.author) · 版本 \($0.manifest.version)" }
+                     ?? "发现并安装你的常用工具")
+                    .font(.callout).foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .panelWindowDragArea()
+            .panelRegion("panel.title")
 
             if let plugin = selectedPlugin {
-                Text(plugin.manifest.summary)
-                    .font(.callout).foregroundStyle(.secondary)
-                    .lineLimit(3)
-                    .help(plugin.manifest.summary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .panelWindowDragArea()
-                    .panelRegion("plugin.summary")
+                PluginHeaderControls(plugin: plugin)
+                    .id(plugin.id)
             }
+
+            SettingsLink {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 15))
+                    .frame(width: 18, height: 18)
+            }
+            .panelGlassButton(circular: true)
+            .help("设置（⌘,）")
+            .accessibilityLabel("设置")
+            .panelRegion("panel.settings")
         }
+        .panelRegion("panel.heading")
         .padding(.horizontal, PanelLayout.contentInset)
         .padding(.vertical, 24)
         .frame(minHeight: 96)
