@@ -22,34 +22,41 @@ struct PluginDetailView: View {
                 }
                 .padding(20)
                 Divider()
-                List {
-                    ForEach(plugin.commands) { command in
-                        HStack(spacing: 12) {
-                            Image(systemName: command.action.symbol).frame(width: 20).foregroundStyle(.secondary)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(command.title)
-                                Text(command.action.title + (command.isEnabled ? "" : " · 已停用"))
-                                    .font(.caption).foregroundStyle(.secondary)
-                                if let error = store.hotKeyErrors[command.id] {
-                                    Text(error).font(.caption).foregroundStyle(.red)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(plugin.commands) { command in
+                            HStack(spacing: 12) {
+                                Image(systemName: command.action.symbol).frame(width: 20).foregroundStyle(.secondary)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(command.title)
+                                    Text(command.action.title + (command.isEnabled ? "" : " · 已停用"))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                    if let error = store.hotKeyErrors[command.id] {
+                                        Text(error).font(.caption).foregroundStyle(.red)
+                                    }
                                 }
+                                Spacer()
+                                Text(command.hotKey?.display ?? "未设快捷键")
+                                    .font(.callout.monospaced()).foregroundStyle(.secondary)
+                                Button { Task { await store.execute(command, pluginID: pluginID) } } label: {
+                                    Image(systemName: "play")
+                                }
+                                .help("执行 \(command.title)")
+                                .disabled(!plugin.isEnabled || !command.isEnabled || !command.isConfigured)
+                                Button("编辑") { editingCommand = command }
                             }
-                            Spacer()
-                            Text(command.hotKey?.display ?? "未设快捷键")
-                                .font(.callout.monospaced()).foregroundStyle(.secondary)
-                            Button { Task { await store.execute(command, pluginID: pluginID) } } label: {
-                                Image(systemName: "play")
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 20)
+                            .accessibilityElement(children: .contain)
+                            .contextMenu {
+                                Button("删除操作", role: .destructive) { store.removeCommand(command.id, pluginID: pluginID) }
                             }
-                            .help("执行 \(command.title)")
-                            .disabled(!plugin.isEnabled || !command.isEnabled || !command.isConfigured)
-                            Button("编辑") { editingCommand = command }
-                        }
-                        .padding(.vertical, 6)
-                        .contextMenu {
-                            Button("删除操作", role: .destructive) { store.removeCommand(command.id, pluginID: pluginID) }
+                            Divider()
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .buttonStyle(.bordered)
                 .overlay {
                     if plugin.commands.isEmpty {
                         ContentUnavailableView("还没有操作", systemImage: "keyboard", description: Text("点击“添加操作”，选择应用或要执行的事情。"))

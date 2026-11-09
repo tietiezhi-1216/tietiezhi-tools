@@ -23,33 +23,42 @@ struct PluginStoreView: View {
                 Divider()
             }
 
-            List(entries) { entry in
-                HStack(alignment: .center, spacing: 16) {
-                    Image(systemName: "puzzlepiece.extension")
-                        .font(.title2).foregroundStyle(.secondary)
-                        .frame(width: 32)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(entry.name).font(.headline)
-                        Text(entry.summary).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Text("\(entry.author) · v\(entry.version)")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 12)
-                    if let installed = store.installed.first(where: { $0.id == entry.id }) {
-                        if Version(entry.version)! > Version(installed.manifest.version)! {
-                            Button("更新") { Task { await store.install(entry) } }
-                                .disabled(store.isInstalling)
-                        } else {
-                            Button("打开") { selectPlugin(entry.id) }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(entries) { entry in
+                        HStack(alignment: .center, spacing: 16) {
+                            Image(systemName: "puzzlepiece.extension")
+                                .font(.title2).foregroundStyle(.secondary)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(entry.name).font(.headline)
+                                Text(entry.summary).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text("\(entry.author) · v\(entry.version)")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 12)
+                            if let installed = store.installed.first(where: { $0.id == entry.id }) {
+                                if Version(entry.version)! > Version(installed.manifest.version)! {
+                                    Button("更新") { Task { await store.install(entry) } }
+                                        .disabled(store.isInstalling)
+                                } else {
+                                    Button("打开") { selectPlugin(entry.id) }
+                                }
+                            } else {
+                                Button("安装") { Task { await store.install(entry) } }
+                                    .disabled(store.isInstalling)
+                            }
                         }
-                    } else {
-                        Button("安装") { Task { await store.install(entry) } }
-                            .disabled(store.isInstalling)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .accessibilityElement(children: .contain)
+                        Divider()
                     }
                 }
-                .padding(.vertical, 12)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .buttonStyle(.bordered)
             .overlay {
                 if store.isRefreshing && store.catalog.isEmpty {
                     ProgressView("正在加载插件…")
