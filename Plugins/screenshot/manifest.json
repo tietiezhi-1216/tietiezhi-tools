@@ -1,21 +1,288 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "com.tietiezhi.screenshot",
   "name": "截图",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
   "author": "tietiezhi-1216",
   "repository": "https://github.com/tietiezhi-1216/tietiezhi-tools",
-  "minimumHostVersion": "0.3.0",
-  "actions": ["captureRegion", "captureWindow", "captureScreen", "captureScrolling", "captureRecording", "pinClipboard", "togglePins", "captureHistory"],
+  "minimumHostVersion": "0.4.0",
+  "actions": [
+    "captureRegion",
+    "captureWindow",
+    "captureScreen",
+    "captureScrolling",
+    "captureRecording",
+    "pinClipboard",
+    "togglePins",
+    "captureHistory"
+  ],
   "templates": [
-    {"id": "region", "title": "区域截图", "action": "captureRegion"},
-    {"id": "window", "title": "窗口截图", "action": "captureWindow"},
-    {"id": "screen", "title": "全屏截图", "action": "captureScreen"},
-    {"id": "scroll", "title": "滚动长截图", "action": "captureScrolling"},
-    {"id": "record", "title": "开始或停止录屏", "action": "captureRecording"},
-    {"id": "pin", "title": "剪贴板贴图", "action": "pinClipboard"},
-    {"id": "toggle-pins", "title": "隐藏或显示贴图", "action": "togglePins"},
-    {"id": "history", "title": "打开截图历史", "action": "captureHistory"}
-  ]
+    {
+      "id": "region",
+      "title": "区域截图",
+      "action": "captureRegion"
+    },
+    {
+      "id": "window",
+      "title": "窗口截图",
+      "action": "captureWindow"
+    },
+    {
+      "id": "screen",
+      "title": "全屏截图",
+      "action": "captureScreen"
+    },
+    {
+      "id": "scroll",
+      "title": "滚动长截图",
+      "action": "captureScrolling"
+    },
+    {
+      "id": "record",
+      "title": "开始或停止录屏",
+      "action": "captureRecording"
+    },
+    {
+      "id": "pin",
+      "title": "剪贴板贴图",
+      "action": "pinClipboard"
+    },
+    {
+      "id": "toggle-pins",
+      "title": "隐藏或显示贴图",
+      "action": "togglePins"
+    },
+    {
+      "id": "history",
+      "title": "打开截图历史",
+      "action": "captureHistory"
+    }
+  ],
+  "ui": {
+    "version": 1,
+    "icon": "camera.viewfinder",
+    "slots": {
+      "header.leading": [
+        {
+          "id": "icon",
+          "kind": "component",
+          "component": "host.icon"
+        },
+        {
+          "id": "identity",
+          "kind": "component",
+          "component": "host.identity"
+        }
+      ],
+      "header.trailing": [
+        {
+          "id": "enabled",
+          "kind": "component",
+          "component": "host.enabled"
+        },
+        {
+          "id": "more",
+          "kind": "component",
+          "component": "host.more"
+        },
+        {
+          "id": "info",
+          "kind": "component",
+          "component": "host.info"
+        },
+        {
+          "id": "preferencesButton",
+          "kind": "button",
+          "symbol": "gearshape",
+          "panel": "preferences",
+          "presentation": "sheet"
+        }
+      ],
+      "toolbar.leading": [
+        {
+          "id": "captureMenu",
+          "kind": "menu",
+          "title": "截图",
+          "symbol": "viewfinder",
+          "style": "prominent",
+          "items": [
+            {
+              "id": "region",
+              "kind": "button",
+              "command": "capture.region"
+            },
+            {
+              "id": "window",
+              "kind": "button",
+              "command": "capture.window"
+            },
+            {
+              "id": "screen",
+              "kind": "button",
+              "command": "capture.screen"
+            }
+          ]
+        },
+        {
+          "id": "scrollMenu",
+          "kind": "menu",
+          "title": "长截图",
+          "symbol": "scroll",
+          "items": [
+            {
+              "id": "vertical",
+              "kind": "button",
+              "command": "capture.scrollVertical"
+            },
+            {
+              "id": "horizontal",
+              "kind": "button",
+              "command": "capture.scrollHorizontal"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "kind": "button",
+          "command": "capture.record"
+        }
+      ],
+      "toolbar.trailing": [
+        {
+          "id": "pin",
+          "kind": "button",
+          "command": "capture.pinClipboard",
+          "title": "贴图"
+        },
+        {
+          "id": "import",
+          "kind": "button",
+          "command": "capture.importImage",
+          "title": "导入…"
+        }
+      ],
+      "content": [
+        {
+          "id": "pages",
+          "kind": "tabs",
+          "panels": [
+            "history",
+            "shortcuts"
+          ]
+        }
+      ],
+      "footer.leading": [
+        {
+          "id": "status",
+          "kind": "component",
+          "component": "capture.status"
+        }
+      ],
+      "footer.trailing": [
+        {
+          "id": "togglePins",
+          "kind": "button",
+          "command": "capture.togglePins",
+          "title": "显示 / 隐藏贴图",
+          "style": "plain"
+        }
+      ],
+      "menuBar": [
+        {
+          "id": "menu.region",
+          "kind": "button",
+          "command": "capture.region"
+        },
+        {
+          "id": "menu.window",
+          "kind": "button",
+          "command": "capture.window"
+        },
+        {
+          "id": "menu.screen",
+          "kind": "button",
+          "command": "capture.screen"
+        },
+        {
+          "id": "menu.vertical",
+          "kind": "button",
+          "command": "capture.scrollVertical"
+        },
+        {
+          "id": "menu.horizontal",
+          "kind": "button",
+          "command": "capture.scrollHorizontal"
+        },
+        {
+          "id": "menu.record",
+          "kind": "button",
+          "command": "capture.record"
+        },
+        {
+          "id": "menu.pin",
+          "kind": "button",
+          "command": "capture.pinClipboard"
+        },
+        {
+          "id": "menu.togglePins",
+          "kind": "button",
+          "command": "capture.togglePins"
+        },
+        {
+          "id": "menu.history",
+          "kind": "button",
+          "command": "capture.history"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": "history",
+        "title": "历史记录",
+        "component": "capture.history"
+      },
+      {
+        "id": "shortcuts",
+        "title": "快捷键",
+        "slots": {
+          "toolbar.leading": [
+            {
+              "id": "shortcut.commandHeading",
+              "kind": "component",
+              "component": "host.commandHeading"
+            }
+          ],
+          "toolbar.trailing": [
+            {
+              "id": "shortcut.addCommand",
+              "kind": "component",
+              "component": "host.addCommand"
+            }
+          ],
+          "content": [
+            {
+              "id": "shortcut.commands",
+              "kind": "component",
+              "component": "host.commands"
+            }
+          ],
+          "footer.leading": [
+            {
+              "id": "shortcut.commandStatus",
+              "kind": "component",
+              "component": "host.commandStatus"
+            }
+          ]
+        }
+      },
+      {
+        "id": "preferences",
+        "title": "截图设置",
+        "component": "capture.preferences",
+        "width": 680,
+        "height": 600
+      }
+    ]
+  }
 }

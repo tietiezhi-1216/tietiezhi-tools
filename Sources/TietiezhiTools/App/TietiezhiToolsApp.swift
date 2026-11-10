@@ -57,19 +57,27 @@ private struct AppMenuView: View {
             NSApplication.shared.activate(ignoringOtherApps: true)
         }
         SettingsLink { Text("设置…") }
-        if let plugin = store.screenshotPlugin {
+        ForEach(store.installed.filter { $0.isEnabled && !store.uiRegistry.interface(for: $0.manifest).items(in: .menuBar).isEmpty }) { plugin in
             Divider()
-            ForEach([ActionKind.captureRegion, .captureWindow, .captureScrolling, .captureRecording, .pinClipboard, .togglePins, .captureHistory], id: \.self) { action in
-                Button(action.title) {
-                    Task {
-                        do { try await store.performScreenshot(action, pluginID: plugin.id) }
-                        catch { store.errorMessage = error.localizedDescription; store.showMainWindow() }
-                    }
-                }
-            }
+            PluginMenuContributions(plugin: plugin).environmentObject(store)
         }
         Divider()
         Button("退出 Tietiezhi Tools") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
+    }
+}
+
+
+private struct PluginMenuContributions: View {
+    @EnvironmentObject private var store: PluginStore
+    @StateObject private var navigation = PluginUINavigation()
+    let plugin: InstalledPlugin
+    var body: some View {
+        let context = PluginUIContext(pluginID: plugin.id, store: store, navigation: navigation)
+        Menu(plugin.manifest.name) {
+            ForEach(store.uiRegistry.interface(for: plugin.manifest).items(in: .menuBar)) { item in
+                PluginSlotItemView(item: item, context: context, menuItem: true)
+            }
+        }
     }
 }

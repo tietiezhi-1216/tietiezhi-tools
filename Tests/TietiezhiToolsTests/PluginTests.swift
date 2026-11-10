@@ -190,11 +190,14 @@ struct PluginTests {
         let store = PluginStore(directory: directory)
         await store.refreshCatalog()
         #expect(store.catalogError == nil)
-        let entry = try #require(store.catalog.first)
-        await store.install(entry)
-        #expect(store.errorMessage == nil)
-        #expect(store.installed.first?.id == entry.id)
-        #expect(store.installed.first?.manifest.version == entry.version)
+        #expect(!store.catalog.isEmpty)
+        for entry in store.catalog {
+            await store.install(entry)
+            #expect(store.errorMessage == nil)
+            let installed = try #require(store.installed.first { $0.id == entry.id })
+            #expect(installed.manifest.version == entry.version)
+            try store.uiRegistry.validate(installed.manifest)
+        }
     }
 
     @Test @MainActor func nativePanelLayoutKeepsRegionsSeparate() async throws {
@@ -251,7 +254,7 @@ struct PluginTests {
                     let more = try #require(frames["plugin.header.more"])
                     let info = try #require(frames["plugin.header.info"])
                     let settings = try #require(frames["panel.settings"])
-                    let toolbar = try #require(frames["plugin.commands.toolbar"])
+                    let toolbar = try #require(frames["plugin.toolbar"])
                     let row = try #require(frames["command.\(command.id.uuidString)"])
                     #expect(abs(bounds.width - host.bounds.width) < 1)
                     #expect(abs(bounds.height - host.bounds.height) < 1)
@@ -269,10 +272,10 @@ struct PluginTests {
                     #expect(heading.contains(enabled))
                     #expect(heading.contains(more))
                     #expect(heading.contains(info))
-                    #expect(heading.contains(settings))
+                    #expect(sidebar.contains(settings))
                     #expect(enabled.maxX + 15 <= more.minX)
                     #expect(more.maxX + 15 <= info.minX)
-                    #expect(info.maxX + 15 <= settings.minX)
+                    #expect(settings.minY > navigation.maxY)
                     #expect(abs(more.width - 28) < 1)
                     #expect(abs(more.height - 28) < 1)
                     #expect(header.maxY <= toolbar.minY + 1)

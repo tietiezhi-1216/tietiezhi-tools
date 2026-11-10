@@ -1,0 +1,567 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/manifest-schema.json",
+  "title": "Tietiezhi Tools plugin manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "summary",
+    "author",
+    "repository",
+    "minimumHostVersion",
+    "actions",
+    "templates",
+    "ui"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "id": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[a-z0-9]+([.-][a-z0-9]+)+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "const": "https://github.com/tietiezhi-1216/tietiezhi-tools"
+    },
+    "minimumHostVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "openApplication",
+          "openURL",
+          "runShortcut",
+          "showMainWindow",
+          "captureRegion",
+          "captureWindow",
+          "captureScreen",
+          "captureScrolling",
+          "captureRecording",
+          "pinClipboard",
+          "togglePins",
+          "captureHistory"
+        ]
+      }
+    },
+    "templates": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "action"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "action": {
+            "enum": [
+              "openApplication",
+              "openURL",
+              "runShortcut",
+              "showMainWindow",
+              "captureRegion",
+              "captureWindow",
+              "captureScreen",
+              "captureScrolling",
+              "captureRecording",
+              "pinClipboard",
+              "togglePins",
+              "captureHistory"
+            ]
+          }
+        }
+      }
+    },
+    "ui": {
+      "$ref": "#/$defs/interface"
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "kind": {
+          "enum": [
+            "component",
+            "button",
+            "menu",
+            "panel",
+            "tabs"
+          ]
+        },
+        "component": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.[A-Za-z0-9._-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "command": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.[A-Za-z0-9._-]+$"
+        },
+        "panel": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "panels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          }
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 160,
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        },
+        "style": {
+          "enum": [
+            "plain",
+            "standard",
+            "prominent"
+          ]
+        },
+        "presentation": {
+          "enum": [
+            "sheet",
+            "popover",
+            "inline"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "component"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "component"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "command"
+                  ]
+                },
+                {
+                  "required": [
+                    "panel"
+                  ]
+                },
+                {
+                  "required": [
+                    "panels"
+                  ]
+                },
+                {
+                  "required": [
+                    "items"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "button"
+              }
+            }
+          },
+          "then": {
+            "required": [],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "component"
+                  ]
+                },
+                {
+                  "required": [
+                    "panels"
+                  ]
+                },
+                {
+                  "required": [
+                    "items"
+                  ]
+                }
+              ]
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "command"
+                ],
+                "not": {
+                  "required": [
+                    "panel"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "panel"
+                ],
+                "not": {
+                  "required": [
+                    "command"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "menu"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "title",
+              "items"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "component"
+                  ]
+                },
+                {
+                  "required": [
+                    "command"
+                  ]
+                },
+                {
+                  "required": [
+                    "panel"
+                  ]
+                },
+                {
+                  "required": [
+                    "panels"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "panel"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "panel"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "component"
+                  ]
+                },
+                {
+                  "required": [
+                    "command"
+                  ]
+                },
+                {
+                  "required": [
+                    "panels"
+                  ]
+                },
+                {
+                  "required": [
+                    "items"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "tabs"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "panels"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "component"
+                  ]
+                },
+                {
+                  "required": [
+                    "command"
+                  ]
+                },
+                {
+                  "required": [
+                    "panel"
+                  ]
+                },
+                {
+                  "required": [
+                    "items"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "slots": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "header.leading",
+          "header.trailing",
+          "toolbar.leading",
+          "toolbar.trailing",
+          "content",
+          "footer.leading",
+          "footer.trailing",
+          "menuBar"
+        ]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "maxItems": 160,
+        "items": {
+          "$ref": "#/$defs/item"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 160,
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        }
+      }
+    },
+    "panelSlots": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "header.leading",
+          "header.trailing",
+          "toolbar.leading",
+          "toolbar.trailing",
+          "content",
+          "footer.leading",
+          "footer.trailing"
+        ]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "maxItems": 160,
+        "items": {
+          "$ref": "#/$defs/item"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 160,
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        }
+      }
+    },
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "slots"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "icon": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "slots": {
+          "$ref": "#/$defs/slots"
+        },
+        "panels": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/panel"
+          }
+        }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "component": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.[A-Za-z0-9._-]+$"
+        },
+        "slots": {
+          "$ref": "#/$defs/panelSlots"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 320,
+          "maximum": 1200
+        },
+        "height": {
+          "type": "number",
+          "minimum": 240,
+          "maximum": 900
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "component"
+          ],
+          "not": {
+            "required": [
+              "slots"
+            ]
+          }
+        },
+        {
+          "required": [
+            "slots"
+          ],
+          "not": {
+            "required": [
+              "component"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

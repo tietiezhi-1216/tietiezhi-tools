@@ -24,20 +24,15 @@ struct ContentView: View {
                 .frame(width: PanelLayout.sidebarWidth)
             Divider()
                 .opacity(0.45)
-            VStack(spacing: 0) {
-                pageHeader
-                Group {
-                    if let plugin = selectedPlugin {
-                        if plugin.manifest.hasScreenshotWorkspace {
-                            ScreenshotPluginView(pluginID: plugin.id, capture: store.screenshots)
-                        } else {
-                            PluginDetailView(pluginID: plugin.id)
-                        }
-                    } else {
+            Group {
+                if let plugin = selectedPlugin {
+                    PluginWorkspaceView(pluginID: plugin.id).id(plugin.id)
+                } else {
+                    VStack(spacing: 0) {
+                        pageHeader
                         PluginStoreView { selection = $0 }
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(PanelPalette.content(scheme).opacity(contentBackgroundOpacity))
@@ -102,7 +97,7 @@ struct ContentView: View {
                     ForEach(store.installed) { plugin in
                         navigationItem(
                             plugin.manifest.name,
-                            symbol: plugin.isEnabled ? plugin.manifest.symbol : "pause.circle",
+                            symbol: plugin.isEnabled ? store.uiRegistry.interface(for: plugin.manifest).icon ?? "puzzlepiece.extension" : "pause.circle",
                             id: plugin.id
                         )
                     }
@@ -116,10 +111,17 @@ struct ContentView: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 8)
             }
-            Text("Tietiezhi Tools")
-                .font(.caption).foregroundStyle(.tertiary)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+            SettingsLink {
+                Label("应用设置", systemImage: "gearshape")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+            .help("应用设置（⌘,）")
+            .panelRegion("panel.settings")
         }
         .frame(maxHeight: .infinity)
         .panelNavigationSurface()
@@ -158,46 +160,16 @@ struct ContentView: View {
     }
 
     private var pageHeader: some View {
-        HStack(alignment: .center, spacing: 16) {
-            if selectedPlugin != nil {
-                PanelIcon(symbol: selectedPlugin?.manifest.symbol ?? "puzzlepiece.extension")
-                    .panelRegion("plugin.header.icon")
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(selectedPlugin?.manifest.name ?? "插件商店")
-                    .font(.system(size: 22, weight: .semibold))
-                    .lineLimit(1)
-                Text(selectedPlugin.map { "\($0.manifest.author) · 版本 \($0.manifest.version)" }
-                     ?? "发现并安装你的常用工具")
-                    .font(.callout).foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .panelWindowDragArea()
-            .panelRegion("panel.title")
-
-            if let plugin = selectedPlugin {
-                PluginHeaderControls(plugin: plugin)
-                    .id(plugin.id)
-            }
-
-            SettingsLink {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 15))
-                    .frame(width: 18, height: 18)
-            }
-            .panelGlassButton(circular: true)
-            .help("设置（⌘,）")
-            .accessibilityLabel("设置")
-            .panelRegion("panel.settings")
+        VStack(alignment: .leading, spacing: 5) {
+            Text("插件商店").font(.system(size: 22, weight: .semibold))
+            Text("发现并安装你的常用工具").font(.callout).foregroundStyle(.secondary)
         }
-        .panelRegion("panel.heading")
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle()).panelWindowDragArea()
+        .panelRegion("panel.title")
         .padding(.horizontal, PanelLayout.contentInset)
         .padding(.vertical, 24)
         .frame(minHeight: 96)
-        .accessibilityElement(children: .contain)
         .panelRegion("panel.header")
     }
 

@@ -7,56 +7,23 @@ struct PluginDetailView: View {
 
     var body: some View {
         if let plugin = store.installed.first(where: { $0.id == pluginID }) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text("操作").font(.headline)
-                    Spacer()
-                    Menu {
-                        ForEach(plugin.manifest.templates) { template in
-                            Button(template.title) {
-                                editingCommand = PluginCommand(action: template.action)
-                            }
-                        }
-                        if plugin.manifest.templates.isEmpty {
-                            ForEach(plugin.manifest.actions, id: \.self) { action in
-                                Button(action.title) {
-                                    editingCommand = PluginCommand(action: action)
-                                }
-                            }
-                        }
-                    } label: {
-                        Label("添加操作", systemImage: "plus")
-                    }
-                    .panelGlassButton(prominent: true)
-                    .fixedSize()
-                }
-                .padding(.horizontal, PanelLayout.contentInset)
-                .frame(height: 58)
-                .accessibilityElement(children: .contain)
-                .panelRegion("plugin.commands.toolbar")
-
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 4) {
-                        ForEach(plugin.commands) { command in
-                            commandRow(command, plugin: plugin)
-                        }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 4) {
+                    ForEach(plugin.commands) { command in
+                        commandRow(command, plugin: plugin)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay {
-                    if plugin.commands.isEmpty {
-                        ContentUnavailableView(
-                            "还没有操作", systemImage: "keyboard",
-                            description: Text("点击右上方“添加操作”，选择应用或要执行的事情。")
-                        )
-                    }
-                }
-
-                Text("关闭主窗口后快捷键仍然有效，退出应用后停止。")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .padding(.horizontal, PanelLayout.contentInset)
-                    .frame(height: 44, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay {
+                if plugin.commands.isEmpty {
+                    ContentUnavailableView(
+                        "还没有操作", systemImage: "keyboard",
+                        description: Text("点击右上方“添加操作”，选择应用或要执行的事情。")
+                    )
+                }
+            }
+
             .sheet(item: $editingCommand) { command in
                 CommandEditor(pluginID: pluginID, command: command, actions: plugin.manifest.actions)
                     .environmentObject(store)
@@ -89,7 +56,9 @@ struct PluginDetailView: View {
                 .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 5))
                 .fixedSize()
             HStack(spacing: 8) {
-                Button { Task { await store.execute(command, pluginID: pluginID) } } label: {
+                Button {
+                    Task { await store.execute(command, pluginID: pluginID) }
+                } label: {
                     Image(systemName: "play.fill")
                         .font(.system(size: 10))
                         .frame(width: 16)
@@ -122,71 +91,83 @@ struct PluginDetailView: View {
         case .showMainWindow:
             "将工具箱主窗口带到前台"
         case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
-             .pinClipboard, .togglePins, .captureHistory:
+            .pinClipboard, .togglePins, .captureHistory:
             "全局截图操作"
         }
     }
 }
 
-struct PluginHeaderControls: View {
+enum PluginHeaderControl { case enabled, more, info }
+
+struct PluginHeaderControlView: View {
+    let control: PluginHeaderControl
     @EnvironmentObject private var store: PluginStore
     @ViewState private var confirmUninstall = false
     @ViewState private var showingInfo = false
     let plugin: InstalledPlugin
 
     var body: some View {
-        HStack(spacing: 16) {
-            Toggle("启用", isOn: Binding(
-                get: { plugin.isEnabled },
-                set: { store.setEnabled($0, pluginID: plugin.id) }
-            ))
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .fixedSize()
-            .accessibilityLabel("启用插件")
-            .panelRegion("plugin.header.enabled")
+        Group {
+            if control == .enabled {
+                Toggle(
+                    "启用",
+                    isOn: Binding(
+                        get: { plugin.isEnabled },
+                        set: { store.setEnabled($0, pluginID: plugin.id) }
+                    )
+                )
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .fixedSize()
+                .accessibilityLabel("启用插件")
+                .panelRegion("plugin.header.enabled")
 
-            Menu {
-                Link("查看源码", destination: plugin.manifest.repository)
-                Divider()
-                Button("卸载插件…", role: .destructive) { confirmUninstall = true }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 18, height: 18)
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .frame(width: 28, height: 28)
-            .background(.quaternary.opacity(0.4), in: Circle())
-            .help("插件更多操作")
-            .accessibilityLabel("插件更多操作")
-            .panelRegion("plugin.header.more")
-
-            Button { showingInfo.toggle() } label: {
-                Image(systemName: "info")
-                    .font(.system(size: 15))
-                    .frame(width: 18, height: 18)
-            }
-            .panelGlassButton(circular: true)
-            .help("查看插件简介")
-            .accessibilityLabel("插件简介")
-            .panelRegion("plugin.header.info")
-            .popover(isPresented: $showingInfo, arrowEdge: .top) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(plugin.manifest.name)
-                        .font(.headline)
-                    ViewThatFits(in: .vertical) {
-                        summaryText
-                        ScrollView { summaryText }
-                    }
-                    .frame(maxHeight: 280)
+            } else if control == .more {
+                Menu {
+                    Link("查看源码", destination: plugin.manifest.repository)
+                    Divider()
+                    Button("卸载插件…", role: .destructive) { confirmUninstall = true }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(width: 18, height: 18)
                 }
-                .padding(20)
-                .frame(width: 340)
-                .accessibilityElement(children: .contain)
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .frame(width: 28, height: 28)
+                .background(.quaternary.opacity(0.4), in: Circle())
+                .help("插件更多操作")
+                .accessibilityLabel("插件更多操作")
+                .panelRegion("plugin.header.more")
+
+            } else if control == .info {
+                Button {
+                    showingInfo.toggle()
+                } label: {
+                    Image(systemName: "info")
+                        .font(.system(size: 15))
+                        .frame(width: 18, height: 18)
+                }
+                .panelGlassButton(circular: true)
+                .help("查看插件简介")
                 .accessibilityLabel("插件简介")
+                .panelRegion("plugin.header.info")
+                .popover(isPresented: $showingInfo, arrowEdge: .top) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(plugin.manifest.name)
+                            .font(.headline)
+                        ViewThatFits(in: .vertical) {
+                            summaryText
+                            ScrollView { summaryText }
+                        }
+                        .frame(maxHeight: 280)
+                    }
+                    .padding(20)
+                    .frame(width: 340)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel("插件简介")
+                }
             }
         }
         .fixedSize()
@@ -202,5 +183,33 @@ struct PluginHeaderControls: View {
             .font(.callout).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct PluginAddCommandView: View {
+    @EnvironmentObject private var store: PluginStore
+    @ViewState private var editingCommand: PluginCommand?
+    let pluginID: String
+    var body: some View {
+        if let plugin = store.installed.first(where: { $0.id == pluginID }) {
+            Menu {
+                if plugin.manifest.templates.isEmpty {
+                    ForEach(plugin.manifest.actions, id: \.self) { action in
+                        Button(action.title) { editingCommand = PluginCommand(action: action) }
+                    }
+                } else {
+                    ForEach(plugin.manifest.templates) { template in
+                        Button(template.title) { editingCommand = PluginCommand(action: template.action) }
+                    }
+                }
+            } label: {
+                Label("添加操作", systemImage: "plus")
+            }
+            .panelGlassButton(prominent: true).fixedSize()
+            .sheet(item: $editingCommand) { command in
+                CommandEditor(pluginID: pluginID, command: command, actions: plugin.manifest.actions)
+                    .environmentObject(store)
+            }
+        }
     }
 }

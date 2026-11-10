@@ -33,7 +33,7 @@ cd tietiezhi-tools
 
 ## 首个插件
 
-**全局快捷键 v1.0.0** 提供四种操作：
+**全局快捷键 v1.1.0** 提供四种操作：
 
 | 操作 | 行为 |
 | --- | --- |
@@ -46,10 +46,9 @@ cd tietiezhi-tools
 
 ## 插件架构
 
-主程序保留插件商店、安装与存储、通用配置界面、全局热键注册和动作执行能力。插件通过统一清单贡献操作模板，宿主不根据插件 ID 写特殊业务页面。
+0.4.0 引入 **插件开发协议 v2**：顶部左右、操作区左右、主内容、底部左右、系统菜单栏均为通用槽位。插件通过自己的清单选择组件、按钮、菜单、分段页及设置面板的布局，宿主不再根据插件类型选择业务页面。应用设置单独放在侧边栏底部；插件齿轮由插件自行声明。
 
-**API v1 是声明式插件格式**，目前提供上述四类动作，不加载任意 Swift 二进制、JavaScript 或 Shell 脚本。新增现有能力范围内的插件无需重新编译主程序；引入全新的原生能力需要扩展宿主 API。
-
+原生能力通过 `PluginUIProvider` 注册，统一渲染器负责槽位、能力校验、动态命令状态以及 sheet / popover / inline 面板路由。ZIP 可以组合已注册的能力，新增全新的原生组件需要随宿主编译；本版不动态加载 Swift 二进制、JavaScript 或 Shell。旧 v1 插件继续通过兼容适配器使用。
 商店从 `Plugins/catalog.json` 获取列表，下载 GitHub Release 中的 ZIP 后验证 SHA-256。安装器只读取 ZIP 中的清单，不将压缩包解压到磁盘，也不执行安装脚本。插件包上限 2 MB，清单上限 256 KB。
 
 规范与发布方法见 [Plugins/README.md](Plugins/README.md)。本地插件配置保存在：
@@ -78,7 +77,7 @@ cd tietiezhi-tools
 swift build
 swift test
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.3.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.4.0 --write-catalog
 ```
 
 构建结果位于 `dist/debug/Tietiezhi Tools.app` 或 `dist/release/Tietiezhi Tools.app`。终端脚本使用当前 Mac 的架构和本地临时签名，适合开发；未启用 App Sandbox / Hardened Runtime，也没有 Developer ID 签名或公证。

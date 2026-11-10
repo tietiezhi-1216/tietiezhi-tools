@@ -31,6 +31,12 @@
 		F66804CF38E242613630A6C2 /* ScreenshotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9281CCD5EAA169B9435A589A /* ScreenshotController.swift */; };
 		D0B28F5553D99B122284488B /* ScreenshotPluginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093E1640DD777C1C43E408EB /* ScreenshotPluginView.swift */; };
 		33B95B3AF88BE3A6EC79906B /* CaptureOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */; };
+		CC50204C7ED53D565C457289 /* PluginInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = A615EE31B37A10F80E91FBA0 /* PluginInterface.swift */; };
+		8A7C5E5BE18414DD1BC6D66C /* PluginUIRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A999C90C261432CB19270FC9 /* PluginUIRegistry.swift */; };
+		A3294EF7EF34D216437A60DE /* HostPluginUIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1953DE9DEFF6E08A8E83A /* HostPluginUIProvider.swift */; };
+		FEA0A057C29749A596A12843 /* PluginComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B899983D24D25EC9EE1F113 /* PluginComposition.swift */; };
+		237B2D183371C41E701E72D9 /* PluginWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDD6FFE3AE433322C3BFC94 /* PluginWorkspaceView.swift */; };
+		EB83EA7683B06E634B917D5C /* CapturePluginUIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +70,12 @@
 		9281CCD5EAA169B9435A589A /* ScreenshotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotController.swift; sourceTree = "<group>"; };
 		093E1640DD777C1C43E408EB /* ScreenshotPluginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotPluginView.swift; sourceTree = "<group>"; };
 		E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureOverlays.swift; sourceTree = "<group>"; };
+		A615EE31B37A10F80E91FBA0 /* PluginInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginInterface.swift; sourceTree = "<group>"; };
+		A999C90C261432CB19270FC9 /* PluginUIRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginUIRegistry.swift; sourceTree = "<group>"; };
+		A4E1953DE9DEFF6E08A8E83A /* HostPluginUIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostPluginUIProvider.swift; sourceTree = "<group>"; };
+		9B899983D24D25EC9EE1F113 /* PluginComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginComposition.swift; sourceTree = "<group>"; };
+		AEDD6FFE3AE433322C3BFC94 /* PluginWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginWorkspaceView.swift; sourceTree = "<group>"; };
+		BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePluginUIProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +127,7 @@
 		11B4D3BA8AED401619B0EC79 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				9B899983D24D25EC9EE1F113 /* PluginComposition.swift */,
 				B5FD79D86815E48CF7EA5AAB /* TietiezhiToolsApp.swift */,
 			);
 			path = App;
@@ -131,6 +144,9 @@
 		546B09B18166645FBEDD2DC6 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				A4E1953DE9DEFF6E08A8E83A /* HostPluginUIProvider.swift */,
+				A999C90C261432CB19270FC9 /* PluginUIRegistry.swift */,
+				A615EE31B37A10F80E91FBA0 /* PluginInterface.swift */,
 				13F62441A7E065808C432452 /* PluginArchive.swift */,
 				B105834281B51927B2147E45 /* PluginManifest.swift */,
 				3B15D684C13297F395C4A912 /* PluginStore.swift */,
@@ -151,6 +167,7 @@
 		9C2A3F0DB1E6F7465E998255 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				AEDD6FFE3AE433322C3BFC94 /* PluginWorkspaceView.swift */,
 				B00000000000000000000004 /* PanelWindowChrome.swift */,
 				B00000000000000000000002 /* PanelStyle.swift */,
 				D2B2FC736B2AE6D1578B42C1 /* CommandEditor.swift */,
@@ -167,6 +184,7 @@
 		20BF2DD8B154514F23DA8897 /* Capture */ = {
 			isa = PBXGroup;
 			children = (
+				BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */,
 				E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */,
 				F396333C22C6CB76992D44F6 /* CaptureEditorView.swift */,
 				84C97E0DF3E1DC6A66686372 /* CaptureImage.swift */,
@@ -234,6 +252,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB83EA7683B06E634B917D5C /* CapturePluginUIProvider.swift in Sources */,
+				237B2D183371C41E701E72D9 /* PluginWorkspaceView.swift in Sources */,
+				FEA0A057C29749A596A12843 /* PluginComposition.swift in Sources */,
+				A3294EF7EF34D216437A60DE /* HostPluginUIProvider.swift in Sources */,
+				8A7C5E5BE18414DD1BC6D66C /* PluginUIRegistry.swift in Sources */,
+				CC50204C7ED53D565C457289 /* PluginInterface.swift in Sources */,
 				33B95B3AF88BE3A6EC79906B /* CaptureOverlays.swift in Sources */,
 				C73AF68AA50E285308E9A805 /* CaptureEditorView.swift in Sources */,
 				F36C768AAAAFBE487A709A30 /* CaptureImage.swift in Sources */,

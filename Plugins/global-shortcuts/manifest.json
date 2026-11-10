@@ -1,17 +1,108 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "com.tietiezhi.global-shortcuts",
   "name": "全局快捷键",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "summary": "用自定义快捷键打开应用、打开网址、运行 macOS 快捷指令，或唤起主面板。",
   "author": "tietiezhi-1216",
   "repository": "https://github.com/tietiezhi-1216/tietiezhi-tools",
-  "minimumHostVersion": "0.2.0",
-  "actions": ["openApplication", "openURL", "runShortcut", "showMainWindow"],
+  "minimumHostVersion": "0.4.0",
+  "actions": [
+    "openApplication",
+    "openURL",
+    "runShortcut",
+    "showMainWindow"
+  ],
   "templates": [
-    {"id": "application", "title": "打开应用", "action": "openApplication"},
-    {"id": "website", "title": "打开网址", "action": "openURL"},
-    {"id": "shortcut", "title": "运行快捷指令", "action": "runShortcut"},
-    {"id": "panel", "title": "显示主面板", "action": "showMainWindow"}
-  ]
+    {
+      "id": "application",
+      "title": "打开应用",
+      "action": "openApplication"
+    },
+    {
+      "id": "website",
+      "title": "打开网址",
+      "action": "openURL"
+    },
+    {
+      "id": "shortcut",
+      "title": "运行快捷指令",
+      "action": "runShortcut"
+    },
+    {
+      "id": "panel",
+      "title": "显示主面板",
+      "action": "showMainWindow"
+    }
+  ],
+  "ui": {
+    "version": 1,
+    "icon": "puzzlepiece.extension",
+    "slots": {
+      "header.leading": [
+        {
+          "id": "icon",
+          "kind": "component",
+          "component": "host.icon"
+        },
+        {
+          "id": "identity",
+          "kind": "component",
+          "component": "host.identity"
+        }
+      ],
+      "header.trailing": [
+        {
+          "id": "enabled",
+          "kind": "component",
+          "component": "host.enabled"
+        },
+        {
+          "id": "more",
+          "kind": "component",
+          "component": "host.more"
+        },
+        {
+          "id": "info",
+          "kind": "component",
+          "component": "host.info"
+        }
+      ],
+      "toolbar.leading": [
+        {
+          "id": "commandHeading",
+          "kind": "component",
+          "component": "host.commandHeading"
+        }
+      ],
+      "toolbar.trailing": [
+        {
+          "id": "addCommand",
+          "kind": "component",
+          "component": "host.addCommand"
+        }
+      ],
+      "content": [
+        {
+          "id": "commands",
+          "kind": "component",
+          "component": "host.commands"
+        }
+      ],
+      "footer.leading": [
+        {
+          "id": "commandStatus",
+          "kind": "component",
+          "component": "host.commandStatus"
+        }
+      ],
+      "menuBar": [
+        {
+          "id": "menu.open",
+          "kind": "button",
+          "command": "host.openPlugin"
+        }
+      ]
+    }
+  }
 }

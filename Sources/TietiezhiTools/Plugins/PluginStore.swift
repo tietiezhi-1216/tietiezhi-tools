@@ -15,9 +15,12 @@ final class PluginStore: ObservableObject {
     var showMainWindow: () -> Void = {}
     private let captureDirectory: URL?
     private var captureController: ScreenshotController?
+    let uiRegistry: PluginUIRegistry
     var screenshots: ScreenshotController {
         if let captureController { return captureController }
         let controller = ScreenshotController(directory: captureDirectory)
+        controller.reportError = { [weak self] in self?.errorMessage = $0 }
+        if let error = controller.errorMessage { errorMessage = error }
         controller.canUseFeatures = { [weak self] in
             self?.installed.contains(where: { $0.isEnabled && $0.manifest.actions.contains(where: \.isScreenshotAction) }) == true
         }
@@ -26,13 +29,12 @@ final class PluginStore: ObservableObject {
     }
     func prepareForQuit() async { await captureController?.prepareForQuit() }
 
-    var screenshotPlugin: InstalledPlugin? { installed.first { $0.isEnabled && $0.manifest.hasScreenshotWorkspace } }
-
     private let directory: URL
     private let hotKeys = HotKeyManager()
 
-    init(directory: URL? = nil, captureDirectory: URL? = nil) {
+    init(directory: URL? = nil, captureDirectory: URL? = nil, uiRegistry: PluginUIRegistry? = nil) {
         self.captureDirectory = captureDirectory
+        self.uiRegistry = uiRegistry ?? PluginComposition.makeUIRegistry()
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("com.tietiezhi.tools/Plugins", isDirectory: true)
         do {
@@ -42,6 +44,7 @@ final class PluginStore: ObservableObject {
                 do {
                     let record = try JSONDecoder().decode(InstalledPlugin.self, from: Data(contentsOf: file))
                     try record.manifest.validate()
+                    try self.uiRegistry.validate(record.manifest)
                     guard file.lastPathComponent == record.id + ".json",
                           Set(record.commands.map(\.id)).count == record.commands.count else {
                         throw PluginError.invalid("插件配置标识不一致。")
@@ -109,6 +112,7 @@ final class PluginStore: ObservableObject {
 
     func installManifest(_ manifest: PluginManifest) throws {
         try manifest.validate()
+        try uiRegistry.validate(manifest)
         if var record = installed.first(where: { $0.id == manifest.id }) {
             guard Version(manifest.version)! >= Version(record.manifest.version)! else {
                 throw PluginError.invalid("不能安装更早版本的插件。")
@@ -127,7 +131,7 @@ final class PluginStore: ObservableObject {
         guard var record = installed.first(where: { $0.id == pluginID }) else { return }
         record.isEnabled = enabled
         do { try save(record) } catch { errorMessage = error.localizedDescription }
-        if record.manifest.hasScreenshotWorkspace {
+        if record.manifest.hasCaptureCapability {
             if !enabled { screenshots.deactivate() }
             else { captureController?.objectWillChange.send() }
         }
@@ -162,7 +166,7 @@ final class PluginStore: ObservableObject {
     func uninstall(_ pluginID: String) {
         guard installed.contains(where: { $0.id == pluginID }) else { return }
         do {
-            if installed.first(where: { $0.id == pluginID })?.manifest.hasScreenshotWorkspace == true { screenshots.deactivate() }
+            if installed.first(where: { $0.id == pluginID })?.manifest.hasCaptureCapability == true { screenshots.deactivate() }
             try FileManager.default.removeItem(at: directory.appendingPathComponent(pluginID + ".json"))
             installed.removeAll { $0.id == pluginID }
             reloadHotKeys()

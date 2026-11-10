@@ -87,7 +87,10 @@ struct CaptureRecord: Codable, Identifiable {
     @Published private(set) var history: [CaptureRecord] = []
     @Published private(set) var busy = false
     @Published private(set) var recordingStarted: Date?
-    @Published var errorMessage: String?
+    @Published var errorMessage: String? {
+        didSet { if let errorMessage { reportError?(errorMessage) } }
+    }
+    var reportError: ((String) -> Void)?
     @Published var notice: String?
     var showHistory: () -> Void = {}
     var canUseFeatures: () -> Bool = { true }

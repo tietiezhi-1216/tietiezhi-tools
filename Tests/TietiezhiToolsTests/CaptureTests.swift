@@ -125,7 +125,7 @@ struct CaptureTests {
         let store = PluginStore(directory: directory.appendingPathComponent("Plugins"), captureDirectory: directory.appendingPathComponent("Images"))
         try store.installManifest(manifest)
         #expect(store.installed[0].commands.isEmpty)
-        #expect(store.installed[0].manifest.hasScreenshotWorkspace)
+        #expect(store.installed[0].manifest.hasCaptureCapability)
         let command = PluginCommand(action: .captureRegion)
         try store.saveCommand(command, pluginID: manifest.id)
         #expect(store.installed[0].commands[0].title == "区域截图")
@@ -135,7 +135,7 @@ struct CaptureTests {
         #expect(!ScreenshotController.safeFilename("../../bad.png"))
         #expect(!ScreenshotController.safeFilename("not-a-uuid.png"))
         store.setEnabled(false, pluginID: manifest.id)
-        #expect(store.screenshotPlugin == nil)
+        #expect(!store.installed.contains { $0.isEnabled && $0.manifest.hasCaptureCapability })
         #expect(!store.screenshots.canUseFeatures())
         #expect(FileManager.default.fileExists(atPath: reloaded.url(record).path))
     }
@@ -271,8 +271,8 @@ struct CaptureTests {
         }
         let root = try #require(observation.frames["panel.root"])
         let header = try #require(observation.frames["panel.header"])
-        let controls = try #require(observation.frames["capture.controls"])
-        let tabs = try #require(observation.frames["capture.tabs"])
+        let controls = try #require(observation.frames["plugin.toolbar"])
+        let tabs = try #require(observation.frames["plugin.ui.pages.tabs"])
         let history = try #require(observation.frames["capture.history"])
         for rect in [header, controls, tabs, history] { #expect(root.contains(rect)) }
         #expect(header.maxY <= controls.minY + 1)

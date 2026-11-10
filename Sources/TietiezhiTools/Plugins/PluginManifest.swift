@@ -1,7 +1,7 @@
 import Foundation
 
 enum HostInfo {
-    static let version = "0.3.0"
+    static let version = "0.4.0"
     static let repository = URL(string: "https://github.com/tietiezhi-1216/tietiezhi-tools")!
     static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/catalog.json")!
 }
@@ -27,12 +27,16 @@ struct PluginManifest: Codable, Equatable, Sendable, Identifiable {
     let minimumHostVersion: String
     let actions: [ActionKind]
     let templates: [CommandTemplate]
-
-    var hasScreenshotWorkspace: Bool { actions.contains(.captureRegion) }
-    var symbol: String { hasScreenshotWorkspace ? "camera.viewfinder" : "puzzlepiece.extension" }
+    var ui: PluginInterface?
 
     func validate() throws {
-        guard schemaVersion == 1 else { throw PluginError.invalid("不支持这个插件格式，请更新主程序。") }
+        guard schemaVersion == 1 || schemaVersion == 2 else { throw PluginError.invalid("不支持这个插件格式，请更新主程序。") }
+        if schemaVersion == 2 {
+            guard let ui, let minimum = Version(minimumHostVersion), minimum >= Version("0.4.0")! else {
+                throw PluginError.invalid("v2 插件需要界面声明与 0.4.0 或更高版本的宿主。")
+            }
+            try ui.validate()
+        } else if ui != nil { throw PluginError.invalid("声明界面槽位时需要使用插件协议 v2。") }
         guard id.range(of: #"^[a-z0-9]+([.-][a-z0-9]+)+$"#, options: .regularExpression) != nil,
               id.utf8.count <= 100 else { throw PluginError.invalid("插件标识不合法。") }
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, name.count <= 80,
