@@ -2,19 +2,17 @@ import AppKit
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject private var store: PluginStore
     @ObservedObject private var permissions: HostPermissionCenter
     @AppStorage("appearance") private var appearance: AppAppearance = .system
 
     init(store: PluginStore) {
-        self.store = store
         permissions = store.permissions
     }
 
     var body: some View {
         TabView(selection: $permissions.settingsPage) {
             generalSettings.tabItem { Label("通用", systemImage: "gearshape") }.tag(HostSettingsPage.general)
-            PermissionManagementView(store: store, permissions: permissions)
+            PermissionManagementView(permissions: permissions)
                 .tabItem { Label("权限管理", systemImage: "hand.raised") }.tag(HostSettingsPage.permissions)
         }
         .frame(width: 640, height: 440)
@@ -44,7 +42,6 @@ struct SettingsView: View {
 }
 
 struct PermissionManagementView: View {
-    @ObservedObject var store: PluginStore
     @ObservedObject var permissions: HostPermissionCenter
 
     var body: some View {
@@ -76,7 +73,7 @@ struct PermissionManagementView: View {
             Form {
                 Section {
                     ForEach(permissions.drivers, id: \.descriptor.id) { driver in
-                        PermissionRow(store: store, permissions: permissions, descriptor: driver.descriptor)
+                        PermissionRow(permissions: permissions, descriptor: driver.descriptor)
                     }
                 }
             }
@@ -88,7 +85,6 @@ struct PermissionManagementView: View {
 }
 
 private struct PermissionRow: View {
-    @ObservedObject var store: PluginStore
     @ObservedObject var permissions: HostPermissionCenter
     let descriptor: HostPermissionDescriptor
     @ViewState private var showingInfo = false
@@ -99,7 +95,9 @@ private struct PermissionRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
                 Image(systemName: descriptor.symbol)
-                    .font(.system(size: 16)).foregroundStyle(needed ? Color.accentColor : Color.secondary).frame(width: 22)
+                    .font(.system(size: 16)).foregroundStyle(needed ? Color.accentColor : Color.secondary).frame(
+                        width: 22
+                    )
                     .accessibilityHidden(true)
                 Text(descriptor.title).font(.callout.weight(needed ? .medium : .regular))
                     .foregroundStyle(needed ? Color.accentColor : Color.primary)
@@ -112,35 +110,32 @@ private struct PermissionRow: View {
                 .buttonStyle(.plain).foregroundStyle(.secondary)
                 .help("查看用途").accessibilityLabel("\(descriptor.title)用途")
                 .popover(isPresented: $showingInfo) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(descriptor.title).font(.headline)
-                        Text(descriptor.summary).font(.callout).foregroundStyle(.secondary)
-                        if !usages.isEmpty {
-                            Divider()
-                            ViewThatFits(in: .vertical) {
-                                usageList
-                                ScrollView { usageList }
-                            }.frame(maxHeight: 180)
-                        }
-                        Button("在系统设置中管理") { permissions.openSettings(descriptor.id) }
-                            .font(.callout)
-                    }
-                    .padding(20).frame(width: 320)
+                    Text(descriptor.summary)
+                        .font(.callout).foregroundStyle(.secondary)
+                        .frame(width: 220, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(14)
                 }
                 Spacer(minLength: 8)
-                Text(status.title).font(.callout)
-                    .foregroundStyle(status == .authorized ? Color.green : Color.secondary)
+                PermissionStatusBadge(status: status)
                     .frame(width: 82, alignment: .trailing)
                 if status == .notDetermined || status == .notGranted, permissions.messages[descriptor.id] == nil {
-                    Button(permissions.requesting == descriptor.id ? "请求中…" : "授权…") {
+                    Button {
                         Task { await permissions.request(descriptor.id) }
-                    }.disabled(permissions.requesting != nil)
-                        .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).request")
-                        .frame(width: 88, alignment: .trailing)
+                    } label: {
+                        Text(permissions.requesting == descriptor.id ? "请求中" : "授权").frame(minWidth: 56)
+                    }
+                    .disabled(permissions.requesting != nil)
+                    .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).request")
+                    .frame(width: 88, alignment: .trailing)
                 } else {
-                    Button("系统设置") { permissions.openSettings(descriptor.id) }
-                        .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).settings")
-                        .frame(width: 88, alignment: .trailing)
+                    Button {
+                        permissions.openSettings(descriptor.id)
+                    } label: {
+                        Text("系统设置").frame(minWidth: 56)
+                    }
+                    .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).settings")
+                    .frame(width: 88, alignment: .trailing)
                 }
             }
             .frame(minHeight: 38)
@@ -151,29 +146,51 @@ private struct PermissionRow: View {
         }
     }
 
-    private struct Usage: Identifiable {
-        let id: String
-        let text: String
-    }
-    private var usageList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(usages, id: \.id) { usage in
-                Text(usage.text).font(.caption).foregroundStyle(.secondary)
-            }
+}
+
+private struct PermissionStatusBadge: View {
+    @Environment(\.colorScheme) private var scheme
+    let status: HostPermissionStatus
+
+    private var title: String {
+        switch status {
+        case .authorized: "已授权"
+        case .notDetermined, .notGranted: "未授权"
+        case .denied: "已拒绝"
+        case .restricted: "受限制"
         }
     }
-    private var usages: [Usage] {
-        store.installed.compactMap { plugin in
-            guard
-                let declaration = permissions.declarations(for: plugin.manifest).first(where: { $0.id == descriptor.id }
-                )
-            else {
-                return nil
-            }
-            let state = plugin.isEnabled ? "" : " · 插件已停用"
-            return Usage(
-                id: plugin.id,
-                text: "\(plugin.manifest.name)：\(declaration.reason)\(declaration.isOptional ? "（可选功能）" : "")\(state)")
+    private var symbol: String {
+        switch status {
+        case .authorized: "checkmark"
+        case .notDetermined, .notGranted: "minus"
+        case .denied: "xmark"
+        case .restricted: "lock.fill"
         }
+    }
+    private var color: Color {
+        switch status {
+        case .authorized:
+            scheme == .dark ? Color(red: 0.40, green: 0.85, blue: 0.56) : Color(red: 0.12, green: 0.43, blue: 0.25)
+        case .notDetermined, .notGranted:
+            scheme == .dark ? Color(red: 1, green: 0.73, blue: 0.30) : Color(red: 0.55, green: 0.35, blue: 0.04)
+        case .denied:
+            scheme == .dark ? Color(red: 1, green: 0.51, blue: 0.48) : Color(red: 0.72, green: 0.20, blue: 0.17)
+        case .restricted:
+            scheme == .dark ? Color(red: 0.76, green: 0.64, blue: 0.96) : Color(red: 0.43, green: 0.31, blue: 0.65)
+        }
+    }
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: symbol).font(.system(size: 9, weight: .semibold))
+            Text(title).font(.system(size: 11, weight: .medium))
+        }
+        .frame(minWidth: 50)
+        .padding(.horizontal, 9).padding(.vertical, 4)
+        .foregroundStyle(color)
+        .background(color.opacity(scheme == .dark ? 0.13 : 0.08), in: Capsule())
+        .overlay { Capsule().strokeBorder(color.opacity(0.22), lineWidth: 0.5) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("权限状态：\(title)")
     }
 }

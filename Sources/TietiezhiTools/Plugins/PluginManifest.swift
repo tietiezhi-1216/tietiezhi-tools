@@ -1,7 +1,7 @@
 import Foundation
 
 enum HostInfo {
-    static let version = "0.5.1"
+    static let version = "0.5.2"
     static let repository = URL(string: "https://github.com/tietiezhi-1216/tietiezhi-tools")!
     static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/catalog.json")!
 }

@@ -6,22 +6,22 @@ import AppKit
     static func drivers() -> [HostPermissionDriver] {
         [
             make(
-                .screenRecording, "屏幕与系统音频录制", "允许读取屏幕内容、制作截图和录屏，并按功能设置录制系统音频。", "display", "ScreenCapture",
+                .screenRecording, "屏幕与系统音频录制", "用于截图、录屏与录制系统音频。", "display", "ScreenCapture",
                 status: { CGPreflightScreenCaptureAccess() ? .authorized : .notGranted },
                 request: { _ = CGRequestScreenCaptureAccess() }),
             make(
-                .accessibility, "辅助功能", "允许控制其他应用，例如在长截图时自动滚动。", "accessibility", "Accessibility",
+                .accessibility, "辅助功能", "用于自动滚动等跨应用控制。", "accessibility", "Accessibility",
                 status: { AXIsProcessTrusted() ? .authorized : .notGranted },
                 request: {
                     _ = AXIsProcessTrustedWithOptions(
                         [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
                 }),
             make(
-                .inputMonitoring, "输入监控", "允许功能监听其他应用中的键盘事件，例如录屏时显示按键。", "keyboard", "ListenEvent",
+                .inputMonitoring, "输入监控", "用于显示按键等键盘监听功能。", "keyboard", "ListenEvent",
                 status: { CGPreflightListenEventAccess() ? .authorized : .notGranted },
                 request: { _ = CGRequestListenEventAccess() }),
             make(
-                .camera, "摄像头", "允许使用摄像头，例如录屏中的画中画。", "camera", "Camera",
+                .camera, "摄像头", "用于录屏画中画等摄像头功能。", "camera", "Camera",
                 status: { mediaStatus(.video) },
                 request: {
                     if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
@@ -29,7 +29,7 @@ import AppKit
                     }
                 }),
             make(
-                .microphone, "麦克风", "允许录制麦克风声音，例如录屏旁白。", "mic", "Microphone",
+                .microphone, "麦克风", "用于录制麦克风声音。", "mic", "Microphone",
                 status: { mediaStatus(.audio) },
                 request: {
                     if AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {
