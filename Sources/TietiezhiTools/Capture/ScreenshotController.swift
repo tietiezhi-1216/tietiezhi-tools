@@ -126,7 +126,7 @@ struct CaptureRecord: Codable, Identifiable {
         return [id.uuidString + ".png", id.uuidString + ".mp4"].contains(filename)
     }
 
-    func perform(_ action: ActionKind) async throws {
+    func perform(_ action: ActionKind, permissions: PluginPermissionClient) async throws {
         if action == .captureRecording, isRecording { try await stopRecording(); return }
         switch action {
         case .captureHistory: showHistory(); return
@@ -138,12 +138,12 @@ struct CaptureRecord: Codable, Identifiable {
         busy = true
         defer { busy = false }
         let mode: CaptureService.Mode = action == .captureScreen ? .screen : action == .captureWindow ? .window : .region
-        guard let selection = try await service.choose(mode) else { return }
+        guard let selection = try await service.choose(mode, permissions: permissions) else { return }
         guard canUseFeatures() else { throw PluginError.invalid("截图插件已停用。") }
         switch action {
         case .captureScrolling:
             let axis = StitchAxis(rawValue: UserDefaults.standard.string(forKey: "capture.scrollAxis") ?? "") ?? .vertical
-            let session = ScrollCaptureSession(selection: selection, service: service, axis: axis)
+            let session = ScrollCaptureSession(selection: selection, service: service, axis: axis, permissions: permissions)
             session.finished = { [weak self] image in
                 self?.scrollSession = nil
                 if let image { self?.accept(image) }
@@ -158,12 +158,12 @@ struct CaptureRecord: Codable, Identifiable {
             if UserDefaults.standard.bool(forKey: "capture.camera") {
                 let overlay = CaptureCameraOverlay()
                 camera = overlay
-                try await overlay.start(in: selection)
+                try await overlay.start(in: selection, permissions: permissions)
             }
             if UserDefaults.standard.bool(forKey: "capture.keystrokes") {
                 let overlay = CaptureKeystrokeOverlay()
                 keystrokes = overlay
-                try overlay.start(in: selection)
+                try overlay.start(in: selection, permissions: permissions)
             }
             let recordingSelection = try await service.includingOverlays(selection, windows: [camera?.windowID, keystrokes?.windowID].compactMap { $0 })
             guard canUseFeatures() else { throw PluginError.invalid("截图插件已停用。") }
@@ -176,7 +176,7 @@ struct CaptureRecord: Codable, Identifiable {
                 }
             }
             let url = directory.appendingPathComponent(UUID().uuidString + ".mp4")
-            try await recorder.start(selection: recordingSelection, url: url,
+            try await recorder.start(selection: recordingSelection, url: url, permissions: permissions,
                                      audio: UserDefaults.standard.bool(forKey: "capture.systemAudio"),
                                      microphone: UserDefaults.standard.bool(forKey: "capture.microphone"),
                                      cursor: UserDefaults.standard.object(forKey: "capture.cursor") as? Bool ?? true)

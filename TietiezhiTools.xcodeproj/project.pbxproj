@@ -37,6 +37,9 @@
 		FEA0A057C29749A596A12843 /* PluginComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B899983D24D25EC9EE1F113 /* PluginComposition.swift */; };
 		237B2D183371C41E701E72D9 /* PluginWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDD6FFE3AE433322C3BFC94 /* PluginWorkspaceView.swift */; };
 		EB83EA7683B06E634B917D5C /* CapturePluginUIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */; };
+		63CBA15537663FF4A034B9AE /* HostPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7F07AB744D06958059153F /* HostPermissions.swift */; };
+		936A74DCD7C0C423C7E05BD2 /* SystemPermissionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969DA07488167B6C12809613 /* SystemPermissionProvider.swift */; };
+		CEB5B47CC849698160917425 /* CapturePermissionRequirements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9C65F14E22DF0F8904DF74 /* CapturePermissionRequirements.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +79,9 @@
 		9B899983D24D25EC9EE1F113 /* PluginComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginComposition.swift; sourceTree = "<group>"; };
 		AEDD6FFE3AE433322C3BFC94 /* PluginWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginWorkspaceView.swift; sourceTree = "<group>"; };
 		BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePluginUIProvider.swift; sourceTree = "<group>"; };
+		BE7F07AB744D06958059153F /* HostPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostPermissions.swift; sourceTree = "<group>"; };
+		969DA07488167B6C12809613 /* SystemPermissionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPermissionProvider.swift; sourceTree = "<group>"; };
+		0E9C65F14E22DF0F8904DF74 /* CapturePermissionRequirements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionRequirements.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +163,8 @@
 		DB1333B55FBD662B0746366D /* Runtime */ = {
 			isa = PBXGroup;
 			children = (
+				969DA07488167B6C12809613 /* SystemPermissionProvider.swift */,
+				BE7F07AB744D06958059153F /* HostPermissions.swift */,
 				A0C3AF362AD8399E6A182311 /* ActionExecutor.swift */,
 				BD6CAAFF41B79A8326B6C63F /* HotKey.swift */,
 				86B01EFAD2060A830C5C766E /* HotKeyManager.swift */,
@@ -184,6 +192,7 @@
 		20BF2DD8B154514F23DA8897 /* Capture */ = {
 			isa = PBXGroup;
 			children = (
+				0E9C65F14E22DF0F8904DF74 /* CapturePermissionRequirements.swift */,
 				BDDCD0CA33A8F26711464930 /* CapturePluginUIProvider.swift */,
 				E93FC115F6C09DD7E1077119 /* CaptureOverlays.swift */,
 				F396333C22C6CB76992D44F6 /* CaptureEditorView.swift */,
@@ -252,6 +261,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEB5B47CC849698160917425 /* CapturePermissionRequirements.swift in Sources */,
+				936A74DCD7C0C423C7E05BD2 /* SystemPermissionProvider.swift in Sources */,
+				63CBA15537663FF4A034B9AE /* HostPermissions.swift in Sources */,
 				EB83EA7683B06E634B917D5C /* CapturePluginUIProvider.swift in Sources */,
 				237B2D183371C41E701E72D9 /* PluginWorkspaceView.swift in Sources */,
 				FEA0A057C29749A596A12843 /* PluginComposition.swift in Sources */,

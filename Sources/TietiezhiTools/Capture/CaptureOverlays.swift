@@ -9,11 +9,11 @@ import SwiftUI
     private var panel: NSPanel?
     var windowID: CGWindowID? { panel.map { CGWindowID($0.windowNumber) } }
 
-    func start(in selection: CaptureSelection) async throws {
+    func start(in selection: CaptureSelection, permissions: PluginPermissionClient) async throws {
         guard selection.rect.width >= 240, selection.rect.height >= 180 else {
             throw PluginError.invalid("摄像头画中画需要至少 240 × 180 的录屏选区。")
         }
-        guard await AVCaptureDevice.requestAccess(for: .video) else { throw PluginError.invalid("摄像头权限未开启。") }
+        try permissions.require([.camera])
         guard let device = AVCaptureDevice.default(for: .video) else { throw PluginError.invalid("未检测到摄像头，可关闭画中画后录屏。") }
         let input = try AVCaptureDeviceInput(device: device)
         box.session.beginConfiguration()
@@ -67,11 +67,8 @@ private final class CameraPreviewView: NSView {
     private var reset: Task<Void, Never>?
     var windowID: CGWindowID? { panel.map { CGWindowID($0.windowNumber) } }
 
-    func start(in selection: CaptureSelection) throws {
-        guard CGPreflightListenEventAccess() else {
-            _ = CGRequestListenEventAccess()
-            throw PluginError.invalid("按键显示需要输入监控权限；可在系统设置中允许，或关闭该选项后录制。")
-        }
+    func start(in selection: CaptureSelection, permissions: PluginPermissionClient) throws {
+        try permissions.require([.inputMonitoring])
         let panel = NSPanel(contentRect: CGRect(x: 0, y: 0, width: min(260, selection.rect.width), height: 54),
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.isReleasedWhenClosed = false; panel.level = .floating

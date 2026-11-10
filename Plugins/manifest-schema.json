@@ -113,6 +113,35 @@
     },
     "ui": {
       "$ref": "#/$defs/interface"
+    },
+    "permissions": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "optional": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
     }
   },
   "$defs": {

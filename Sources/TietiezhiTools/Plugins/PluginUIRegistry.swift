@@ -16,6 +16,7 @@ extension PluginUIProvider {
     let navigation: PluginUINavigation
     var plugin: InstalledPlugin? { store.installed.first { $0.id == pluginID } }
     var interface: PluginInterface? { plugin.map { store.uiRegistry.interface(for: $0.manifest) } }
+    var permissions: PluginPermissionClient { store.permissionClient(for: pluginID) }
 }
 
 struct PluginCommandPresentation {

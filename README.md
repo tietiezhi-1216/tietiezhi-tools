@@ -6,6 +6,8 @@
 
 ## 使用
 
+0.5.0 将系统授权集中到「应用设置 → 权限管理」：屏幕录制、辅助功能、输入监控、摄像头和麦克风统一查询、请求和管理，并显示插件用途。插件缺少权限时通过宿主接口打开该页面，用户确认授权后再执行功能；进入插件、安装插件或开启业务选项不会请求权限。更改和撤销系统权限通过对应的 macOS 隐私设置完成。
+
 0.3.0 新增[截图插件](Plugins/screenshot/README.md)：全局截图快捷键、区域/窗口/全屏、多显示器、置顶贴图、箭头/文字/马赛克/实色遮挡等标注、横纵滚动长图、录屏与 GIF、本地 OCR/条码、系统翻译、CSV/XLSX 表格、LaTeX 公式、Word/Markdown/可搜索 PDF 文档导出。复杂图像识别可选接入自己的视觉模型，密钥保存在钥匙串，发送图片前须确认。录屏和系统翻译需要 macOS 15+，macOS 26+ 另支持本地文档结构识别。
 
 在商店安装「截图」，进入插件的「快捷键」页绑定操作。首次截图/录屏需要屏幕录制权限；导入图片、标注、OCR 和贴图可先使用。窗口关闭后，仍可用全局快捷键或菜单栏调用；退出前会结束并保存正在进行的录屏。详细功能、权限及边界见插件说明。
@@ -33,7 +35,7 @@ cd tietiezhi-tools
 
 ## 首个插件
 
-**全局快捷键 v1.1.0** 提供四种操作：
+**全局快捷键 v1.2.0** 提供四种操作：
 
 | 操作 | 行为 |
 | --- | --- |
@@ -77,7 +79,7 @@ cd tietiezhi-tools
 swift build
 swift test
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.4.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.5.0 --write-catalog
 ```
 
 构建结果位于 `dist/debug/Tietiezhi Tools.app` 或 `dist/release/Tietiezhi Tools.app`。终端脚本使用当前 Mac 的架构和本地临时签名，适合开发；未启用 App Sandbox / Hardened Runtime，也没有 Developer ID 签名或公证。

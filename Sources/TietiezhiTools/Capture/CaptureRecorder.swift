@@ -16,12 +16,9 @@ import UniformTypeIdentifiers
     private var waiter: CheckedContinuation<Void, Error>?
     var failed: ((String) -> Void)?
 
-    func start(selection: CaptureSelection, url: URL, audio: Bool, microphone: Bool, cursor: Bool) async throws {
+    func start(selection: CaptureSelection, url: URL, permissions: PluginPermissionClient, audio: Bool, microphone: Bool, cursor: Bool) async throws {
         guard stream == nil else { throw PluginError.invalid("已有录屏正在进行。") }
-        if microphone {
-            let allowed = await AVCaptureDevice.requestAccess(for: .audio)
-            guard allowed else { throw PluginError.invalid("麦克风权限未开启，可以关闭麦克风后重新录制。") }
-        }
+        try permissions.require(microphone ? [.screenRecording, .microphone] : [.screenRecording])
         result = nil; errorMessage = nil
         let config = SCStreamConfiguration()
         config.sourceRect = selection.rect

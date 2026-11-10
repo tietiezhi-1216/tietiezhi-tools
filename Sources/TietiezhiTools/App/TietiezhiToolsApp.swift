@@ -23,7 +23,7 @@ struct TietiezhiToolsApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(store: store)
         }
 
         MenuBarExtra("Tietiezhi Tools", systemImage: "wrench.and.screwdriver") {
@@ -49,6 +49,7 @@ struct TietiezhiToolsApp: App {
 
 private struct AppMenuView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @EnvironmentObject private var store: PluginStore
 
     var body: some View {
@@ -57,6 +58,12 @@ private struct AppMenuView: View {
             NSApplication.shared.activate(ignoringOtherApps: true)
         }
         SettingsLink { Text("设置…") }
+        Button("权限管理…") {
+            store.permissions.settingsPage = .permissions
+            store.permissions.refresh()
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            openSettings()
+        }
         ForEach(store.installed.filter { $0.isEnabled && !store.uiRegistry.interface(for: $0.manifest).items(in: .menuBar).isEmpty }) { plugin in
             Divider()
             PluginMenuContributions(plugin: plugin).environmentObject(store)

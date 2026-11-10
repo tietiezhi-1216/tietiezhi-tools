@@ -15,6 +15,7 @@
 | `repository` | `https://github.com/tietiezhi-1216/tietiezhi-tools` |
 | `actions` | 允许使用的动作能力，无重复项 |
 | `templates` | 用户添加操作时的模板，包含 `id`、`title`、`action` |
+| `permissions` | 0.5.0+ 插件显式声明所需权限；无需权限时为 `[]` |
 | `ui` | 界面协议：`version: 1`、可选 SF Symbol `icon`、`slots` 和 `panels` |
 
 支持动作：`openApplication`、`openURL`、`runShortcut`、`showMainWindow`、`captureRegion`、`captureWindow`、`captureScreen`、`captureScrolling`、`captureRecording`、`pinClipboard`、`togglePins`、`captureHistory`。安装、注册界面或加载清单不会执行这些动作，也不占用默认全局快捷键。
@@ -102,10 +103,41 @@ struct ExampleProvider: PluginUIProvider {
 
 当前 ZIP 是声明式扩展包，可自由组合已注册的原生能力与界面。新增全新的原生组件或命令需实现 provider 并随宿主编译；本版不动态加载 Swift 二进制、JavaScript 或 Shell。v1 包只在兼容适配器中生成旧版布局，v2 原样采用清单中的布局。
 
+## 宿主权限服务（0.5.0+）
+
+系统权限只授予主应用。插件清单声明用途，主应用统一查询状态、显示使用该权限的插件、请求授权和打开系统隐私设置。插件界面不提供独立的系统授权按钮，也不直接调用 TCC / AVFoundation 的授权 API。
+
+```json
+"permissions": [
+  {"id": "system.screenRecording", "reason": "截图和录屏"},
+  {"id": "system.camera", "reason": "录屏摄像头画中画", "optional": true}
+]
+```
+
+显式声明需要 `minimumHostVersion: "0.5.0"` 或更高；此版本及以上的插件必须包含 `permissions`。最多 32 项，ID 无重复，每项用途 1–240 字。`optional` 表示按功能选项使用，默认 false；所有权限仍然在实际操作时检查，不会因为安装或启用插件就请求授权。旧包通过原生能力的兼容声明继续使用。
+
+当前宿主管理：`system.screenRecording`、`system.accessibility`、`system.inputMonitoring`、`system.camera`、`system.microphone`。全局热键采用 Carbon 注册，不需要输入监控或辅助功能授权。
+
+插件只调用绑定到自身身份的客户端：
+
+```swift
+try context.permissions.require([.camera])
+// 主应用验证插件是否启用、是否声明该权限，以及当前系统状态。
+// 获准后才继续功能；缺少时会定位主应用的权限管理并抛出 HostPermissionError。
+```
+
+缺少权限时不会直接弹出系统授权框。主应用显示请求来源、用途和状态，用户点击「授权…」才调用系统请求 API；拒绝或受限制时通过系统设置处理。授权后用户重新执行操作，不自动启动录屏或设备。不要捕获错误后继续读取受保护数据；宿主命令入口会统一处理权限错误。
+
+业务选项（麦克风录制、画中画、按键显示等）保留在插件设置中；开启选项不会立刻请求系统权限。自动滚动在实际开启时请求辅助功能，手动滚动不需要。录屏停止操作不因权限被撤销而受阻。
+
+`HostPermissionCenter` 接收 `HostPermissionDriver` 注册，驱动提供描述、状态查询、系统请求和设置跳转。新增系统能力由宿主注册驱动并检查必要的 Info.plist / entitlement；无需修改插件面板或统一权限管理界面。状态不持久化为“已授权”，返回应用或点击刷新时重新查询系统。未知、未声明或已停用插件的请求不会触发系统授权。
+
+系统权限由 macOS 最终确认和撤销，主应用不修改 TCC 数据库。屏幕录制、辅助功能和输入监控的 preflight 只提供是否已授权，界面使用「未授权」而不推断是否曾拒绝。摄像头与麦克风采用系统的精确授权状态。参阅 Apple 的 [媒体授权状态](https://developer.apple.com/documentation/avfoundation/avcapturedevice/authorizationstatus(for:))、[辅助功能信任检查](https://developer.apple.com/documentation/applicationservices/1459186-axisprocesstrustedwithoptions)、[输入监控请求](https://developer.apple.com/documentation/coregraphics/cgrequestlisteneventaccess())。
+
 ## 发布
 
 ```bash
-python3 scripts/package-plugins.py --tag v0.4.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.5.0 --write-catalog
 ```
 
 上传 `dist/plugins/*.zip` 到同名 Release，资产可下载后再更新 main 的商店目录。不要替换已发布的同版本资产；修改包时递增版本并重新生成校验值。

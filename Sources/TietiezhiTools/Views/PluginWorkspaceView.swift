@@ -182,8 +182,7 @@ private struct PluginSlotButton: View {
             if let command = item.command {
                 Task {
                     do { try await context.store.uiRegistry.execute(command, context: context) } catch {
-                        context.store.errorMessage = error.localizedDescription
-                        context.store.showMainWindow()
+                        context.store.handleExecutionError(error)
                     }
                 }
             } else if let panel = item.panel, let ui = context.interface {

@@ -16,20 +16,9 @@ import SwiftUI
     private var selector: CaptureSelector?
     private var generation = 0
 
-    static var permitted: Bool { CGPreflightScreenCaptureAccess() }
-    static func requestPermission() { _ = CGRequestScreenCaptureAccess() }
-    static func openPermissions() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    func choose(_ mode: Mode) async throws -> CaptureSelection? {
+    func choose(_ mode: Mode, permissions: PluginPermissionClient) async throws -> CaptureSelection? {
         let currentGeneration = generation
-        guard Self.permitted else {
-            Self.requestPermission()
-            throw PluginError.invalid("请在系统设置 → 隐私与安全性 → 屏幕与系统音频录制中允许 Tietiezhi Tools，再重试。")
-        }
+        try permissions.require([.screenRecording])
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         let ownApps = content.applications.filter { $0.processID == ProcessInfo.processInfo.processIdentifier }
         var screens: [(NSScreen, SCDisplay, SCContentFilter, CGImage)] = []
@@ -82,7 +71,8 @@ import SwiftUI
         return selected
     }
 
-    func capture(_ selection: CaptureSelection) async throws -> CGImage {
+    func capture(_ selection: CaptureSelection, permissions: PluginPermissionClient) async throws -> CGImage {
+        try permissions.require([.screenRecording])
         let config = SCStreamConfiguration()
         config.sourceRect = selection.rect
         config.width = max(1, Int(selection.rect.width * selection.scale))
@@ -231,12 +221,14 @@ private final class CaptureSelectionView: NSView {
     private var stitcher: ImageStitcher
     private let selection: CaptureSelection
     private let service: CaptureService
+    private let permissions: PluginPermissionClient
     private var task: Task<Void, Never>?
     private var panel: NSPanel?
     var finished: ((CGImage?) -> Void)?
 
-    init(selection: CaptureSelection, service: CaptureService, axis: StitchAxis) {
+    init(selection: CaptureSelection, service: CaptureService, axis: StitchAxis, permissions: PluginPermissionClient) {
         self.selection = selection; self.service = service; self.axis = axis
+        self.permissions = permissions
         stitcher = ImageStitcher(image: selection.image, axis: axis)
         size = CGSize(width: selection.image.width, height: selection.image.height)
     }
@@ -259,9 +251,10 @@ private final class CaptureSelectionView: NSView {
     func sample() async {
         do {
             if automaticScroll {
-                guard AXIsProcessTrusted() else {
+                do { try permissions.require([.accessibility]) }
+                catch {
                     automaticScroll = false
-                    status = "自动滚动需要辅助功能权限；仍可手动滚动。"
+                    status = "请在主应用权限管理中开启辅助功能；仍可手动滚动。"
                     return
                 }
                 if let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2,
@@ -271,7 +264,7 @@ private final class CaptureSelectionView: NSView {
                     try await Task.sleep(for: .milliseconds(220))
                 }
             }
-            let image = try await service.capture(selection)
+            let image = try await service.capture(selection, permissions: permissions)
             let result = try await Task.detached { [stitcher] in
                 var next = stitcher
                 let appended = try next.append(image)
@@ -286,6 +279,9 @@ private final class CaptureSelectionView: NSView {
         } catch {
             automaticScroll = false
             status = error.localizedDescription
+            if error is HostPermissionError {
+                task?.cancel(); task = nil // Preserve the current stitched image; do not repeatedly reopen settings.
+            }
         }
     }
     func finish(cancelled: Bool = false) {

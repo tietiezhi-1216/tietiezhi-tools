@@ -1,7 +1,7 @@
 import Foundation
 
 enum HostInfo {
-    static let version = "0.4.0"
+    static let version = "0.5.0"
     static let repository = URL(string: "https://github.com/tietiezhi-1216/tietiezhi-tools")!
     static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/catalog.json")!
 }
@@ -28,6 +28,7 @@ struct PluginManifest: Codable, Equatable, Sendable, Identifiable {
     let actions: [ActionKind]
     let templates: [CommandTemplate]
     var ui: PluginInterface?
+    var permissions: [PluginPermissionDeclaration]?
 
     func validate() throws {
         guard schemaVersion == 1 || schemaVersion == 2 else { throw PluginError.invalid("不支持这个插件格式，请更新主程序。") }
@@ -37,6 +38,18 @@ struct PluginManifest: Codable, Equatable, Sendable, Identifiable {
             }
             try ui.validate()
         } else if ui != nil { throw PluginError.invalid("声明界面槽位时需要使用插件协议 v2。") }
+        if schemaVersion == 2, let minimum = Version(minimumHostVersion), minimum >= Version("0.5.0")!, permissions == nil {
+            throw PluginError.invalid("此版本的插件必须声明 permissions；无需系统权限时使用空数组。")
+        }
+        if let permissions {
+            guard schemaVersion == 2, let minimum = Version(minimumHostVersion), minimum >= Version("0.5.0")!,
+                  permissions.count <= 32, Set(permissions.map(\.id)).count == permissions.count,
+                  permissions.allSatisfy({
+                      $0.id.rawValue.count <= 100 &&
+                      $0.id.rawValue.range(of: #"^[A-Za-z0-9][A-Za-z0-9._-]*$"#, options: .regularExpression) != nil &&
+                      !$0.reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.reason.count <= 240
+                  }) else { throw PluginError.invalid("插件权限声明无效，或未指定 0.5.0 及以上宿主。") }
+        }
         guard id.range(of: #"^[a-z0-9]+([.-][a-z0-9]+)+$"#, options: .regularExpression) != nil,
               id.utf8.count <= 100 else { throw PluginError.invalid("插件标识不合法。") }
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, name.count <= 80,

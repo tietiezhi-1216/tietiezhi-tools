@@ -6,27 +6,10 @@ struct CaptureHistoryView: View {
     @EnvironmentObject private var store: PluginStore
     let pluginID: String
     @ObservedObject var capture: ScreenshotController
-    @ViewState private var permission = CaptureService.permitted
-    @Environment(\.scenePhase) private var phase
     private var enabled: Bool { store.installed.first { $0.id == pluginID }?.isEnabled == true }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if !permission {
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "display.trianglebadge.exclamationmark").foregroundStyle(.secondary)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("截图和录屏需要屏幕录制权限").font(.callout.weight(.medium))
-                        Text("导入图片、标注、OCR 和贴图可直接使用。").font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button("授权…") {
-                        CaptureService.requestPermission()
-                        permission = CaptureService.permitted
-                    }
-                    Button("系统设置") { CaptureService.openPermissions() }
-                }.padding(.horizontal, PanelLayout.contentInset)
-            }
             if let notice = capture.notice {
                 HStack {
                     Text(notice).font(.callout).foregroundStyle(.secondary)
@@ -78,7 +61,6 @@ struct CaptureHistoryView: View {
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .panelRegion("capture.history")
-            .onChange(of: phase) { _, _ in permission = CaptureService.permitted }
     }
 }
 
@@ -134,15 +116,9 @@ struct ScreenshotSettingsView: View {
                 Picker("快捷键默认方向", selection: $axis) {
                     ForEach(StitchAxis.allCases) { Text($0.title).tag($0.rawValue) }
                 }
-                Text("选定区域后缓慢滚动；支持两个方向前进或回滚。自动滚动需在系统设置中开启辅助功能权限。")
+                Text("选定区域后缓慢滚动；支持两个方向前进或回滚。自动滚动所需的辅助功能权限由主应用统一申请。")
                     .font(.caption).foregroundStyle(.secondary)
-                Button("自动滚动权限设置") {
-                    if let url = URL(
-                        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-                    {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
+
             }
             Section("录屏") {
                 Toggle("录制系统音频", isOn: $systemAudio)
@@ -150,7 +126,7 @@ struct ScreenshotSettingsView: View {
                 Toggle("显示鼠标和点击效果", isOn: $cursor)
                 Toggle("摄像头画中画", isOn: $camera)
                 Toggle("显示键盘按键", isOn: $keystrokes)
-                Text("画中画需摄像头权限；按键显示需输入监控权限，仅在录屏期间启用，系统安全输入时暂停。")
+                Text("所需的系统权限由主应用统一申请。画中画与按键显示仅在录屏期间启用，系统安全输入时暂停显示按键。")
                     .font(.caption).foregroundStyle(.secondary)
                 Text("录屏需要 macOS 15+；停止后可裁剪 MP4 或导出最长 3 分钟、10 帧/秒的 GIF。")
                     .font(.caption).foregroundStyle(.secondary)

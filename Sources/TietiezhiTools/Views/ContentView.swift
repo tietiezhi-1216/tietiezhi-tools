@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var store: PluginStore
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.displayScale) private var displayScale
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -61,6 +62,11 @@ struct ContentView: View {
             store.showMainWindow = {
                 action(id: "main")
                 NSApplication.shared.activate(ignoringOtherApps: true)
+            }
+            let settings = openSettings
+            store.permissions.presentManagement = {
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                settings()
             }
             if let id = store.requestedPluginID { selection = id; store.requestedPluginID = nil }
         }

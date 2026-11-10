@@ -16,6 +16,7 @@ final class PluginStore: ObservableObject {
     private let captureDirectory: URL?
     private var captureController: ScreenshotController?
     let uiRegistry: PluginUIRegistry
+    let permissions: HostPermissionCenter
     var screenshots: ScreenshotController {
         if let captureController { return captureController }
         let controller = ScreenshotController(directory: captureDirectory)
@@ -32,9 +33,10 @@ final class PluginStore: ObservableObject {
     private let directory: URL
     private let hotKeys = HotKeyManager()
 
-    init(directory: URL? = nil, captureDirectory: URL? = nil, uiRegistry: PluginUIRegistry? = nil) {
+    init(directory: URL? = nil, captureDirectory: URL? = nil, uiRegistry: PluginUIRegistry? = nil, permissions: HostPermissionCenter? = nil) {
         self.captureDirectory = captureDirectory
         self.uiRegistry = uiRegistry ?? PluginComposition.makeUIRegistry()
+        self.permissions = permissions ?? PluginComposition.makePermissionCenter()
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("com.tietiezhi.tools/Plugins", isDirectory: true)
         do {
@@ -45,6 +47,7 @@ final class PluginStore: ObservableObject {
                     let record = try JSONDecoder().decode(InstalledPlugin.self, from: Data(contentsOf: file))
                     try record.manifest.validate()
                     try self.uiRegistry.validate(record.manifest)
+                    try self.permissions.validate(record.manifest)
                     guard file.lastPathComponent == record.id + ".json",
                           Set(record.commands.map(\.id)).count == record.commands.count else {
                         throw PluginError.invalid("插件配置标识不一致。")
@@ -113,6 +116,7 @@ final class PluginStore: ObservableObject {
     func installManifest(_ manifest: PluginManifest) throws {
         try manifest.validate()
         try uiRegistry.validate(manifest)
+        try permissions.validate(manifest)
         if var record = installed.first(where: { $0.id == manifest.id }) {
             guard Version(manifest.version)! >= Version(record.manifest.version)! else {
                 throw PluginError.invalid("不能安装更早版本的插件。")
@@ -181,18 +185,37 @@ final class PluginStore: ObservableObject {
                 try await performScreenshot(action, pluginID: pluginID)
             }
         }
-        catch { errorMessage = "执行失败：\(error.localizedDescription)"; showMainWindow() }
+        catch { handleExecutionError(error) }
     }
 
     func performScreenshot(_ action: ActionKind, pluginID: String) async throws {
         guard action.isScreenshotAction,
               let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled,
               plugin.manifest.actions.contains(action) else { throw PluginError.invalid("请先启用截图插件。") }
+        let client = permissionClient(for: pluginID)
+        if !(action == .captureRecording && screenshots.isRecording) {
+            try client.require(CapturePermissionRequirements.permissions(for: action))
+        }
         screenshots.showHistory = { [weak self] in
             self?.requestedPluginID = pluginID
             self?.showMainWindow()
         }
-        try await screenshots.perform(action)
+        try await screenshots.perform(action, permissions: client)
+    }
+
+    func permissionClient(for pluginID: String) -> PluginPermissionClient {
+        PluginPermissionClient { [weak self] ids in
+            guard let self, let plugin = self.installed.first(where: { $0.id == pluginID }) else {
+                throw PluginError.invalid("插件已卸载。")
+            }
+            try self.permissions.require(ids, for: plugin)
+        }
+    }
+
+    func handleExecutionError(_ error: Error) {
+        if error is HostPermissionError { return } // The host has already opened permission management.
+        errorMessage = "执行失败：\(error.localizedDescription)"
+        showMainWindow()
     }
 
     private func save(_ record: InstalledPlugin) throws {
