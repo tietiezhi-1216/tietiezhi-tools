@@ -144,7 +144,7 @@ private struct PermissionRow: View {
                 }
             }
             .frame(minHeight: 38)
-            if let message = permissions.messages[descriptor.id] {
+            if status != .authorized, let message = permissions.messages[descriptor.id] {
                 Text(message).font(.caption).foregroundStyle(.secondary)
                     .padding(.leading, 34)
             }
