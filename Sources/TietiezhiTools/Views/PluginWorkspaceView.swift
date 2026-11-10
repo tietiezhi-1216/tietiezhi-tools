@@ -89,6 +89,7 @@ struct PluginUILayoutView: View {
 }
 
 struct PluginSlotItemView: View {
+    @EnvironmentObject private var store: PluginStore
     let item: PluginUIItem
     let context: PluginUIContext
     var menuItem = false
@@ -99,7 +100,7 @@ struct PluginSlotItemView: View {
     private var rendered: AnyView {
         switch item.kind {
         case .component:
-            return context.store.uiRegistry.components[item.component ?? ""]?.makeView(context) ?? AnyView(EmptyView())
+            return store.uiRegistry.components[item.component ?? ""]?.makeView(context) ?? AnyView(EmptyView())
         case .button:
             return AnyView(PluginSlotButton(item: item, context: context, menuItem: menuItem))
         case .menu:
@@ -144,6 +145,7 @@ private struct PluginItemLabel: View {
 }
 
 private struct PluginSlotButton: View {
+    @EnvironmentObject private var store: PluginStore
     let item: PluginUIItem
     let context: PluginUIContext
     let menuItem: Bool
@@ -157,7 +159,7 @@ private struct PluginSlotButton: View {
         _observation = StateObject(wrappedValue: PluginCommandObservation(commandID: item.command, context: context))
     }
     private var state: PluginCommandPresentation? {
-        item.command.flatMap { context.store.uiRegistry.commands[$0]?.presentation(context) }
+        item.command.flatMap { store.uiRegistry.commands[$0]?.presentation(context) }
     }
     private var title: String { item.title ?? state?.title ?? "" }
     private var accessibleTitle: String {
@@ -166,7 +168,7 @@ private struct PluginSlotButton: View {
     }
     var body: some View {
         styledButton
-            .disabled(item.command != nil && (context.plugin?.isEnabled != true || state?.isEnabled == false))
+            .disabled(item.command != nil && (store.installed.first { $0.id == context.pluginID }?.isEnabled != true || state?.isEnabled == false))
             .help(accessibleTitle)
             .accessibilityLabel(accessibleTitle)
             .popover(isPresented: $showingPopover) {
@@ -207,6 +209,7 @@ private struct PluginSlotButton: View {
 }
 
 private struct PluginSlotTabs: View {
+    @EnvironmentObject private var store: PluginStore
     let item: PluginUIItem
     let context: PluginUIContext
     @ObservedObject private var navigation: PluginUINavigation
@@ -221,10 +224,11 @@ private struct PluginSlotTabs: View {
             set: { navigation.selectedTabs[item.id] = $0 })
     }
     var body: some View {
+        let ui = store.installed.first { $0.id == context.pluginID }.map { store.uiRegistry.interface(for: $0.manifest) }
         VStack(spacing: 16) {
             Picker(item.title ?? "插件页面", selection: selected) {
                 ForEach(item.panels ?? [], id: \.self) { id in
-                    Text(context.interface?.panel(id)?.title ?? id).tag(id)
+                    Text(ui?.panel(id)?.title ?? id).tag(id)
                 }
             }.pickerStyle(.segmented).labelsHidden()
                 .padding(.horizontal, PanelLayout.contentInset)
@@ -236,10 +240,12 @@ private struct PluginSlotTabs: View {
 }
 
 struct PluginPanelContent: View {
+    @EnvironmentObject private var store: PluginStore
     let panelID: String
     let context: PluginUIContext
     var body: some View {
-        if let panel = context.interface?.panel(panelID) {
+        if let manifest = store.installed.first(where: { $0.id == context.pluginID })?.manifest,
+           let panel = store.uiRegistry.interface(for: manifest).panel(panelID) {
             if let component = panel.component {
                 context.store.uiRegistry.components[component]?.makeView(context)
             } else if let slots = panel.slots {
@@ -251,11 +257,13 @@ struct PluginPanelContent: View {
 }
 
 private struct PluginPanelSheet: View {
+    @EnvironmentObject private var store: PluginStore
     @Environment(\.dismiss) private var dismiss
     let panelID: String
     let context: PluginUIContext
     var body: some View {
-        let panel = context.interface?.panel(panelID)
+        let panel = store.installed.first { $0.id == context.pluginID }
+            .flatMap { store.uiRegistry.interface(for: $0.manifest).panel(panelID) }
         VStack(spacing: 0) {
             HStack {
                 Text(panel?.title ?? "插件面板").font(.headline)

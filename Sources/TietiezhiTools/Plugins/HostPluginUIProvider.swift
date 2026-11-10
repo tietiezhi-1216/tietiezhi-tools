@@ -29,12 +29,14 @@ struct HostPluginUIProvider: PluginUIProvider {
 }
 
 private struct PluginIdentityView: View {
+    @EnvironmentObject private var store: PluginStore
     let context: PluginUIContext
+    private var plugin: InstalledPlugin? { store.installed.first { $0.id == context.pluginID } }
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(context.plugin?.manifest.name ?? "")
+            Text(plugin?.manifest.name ?? "")
                 .font(.system(size: 22, weight: .semibold)).lineLimit(1)
-            Text(context.plugin.map { "\($0.manifest.author) · 版本 \($0.manifest.version)" } ?? "")
+            Text(plugin.map { "\($0.manifest.author) · 版本 \($0.manifest.version)" } ?? "")
                 .font(.callout).foregroundStyle(.secondary).lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
