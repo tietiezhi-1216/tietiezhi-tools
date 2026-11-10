@@ -95,12 +95,15 @@ private struct PermissionRow: View {
 
     var body: some View {
         let status = permissions.status(descriptor.id)
+        let needed = status != .authorized && permissions.pendingRequest?.permissions.contains(descriptor.id) == true
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
                 Image(systemName: descriptor.symbol)
-                    .font(.system(size: 16)).foregroundStyle(.secondary).frame(width: 22)
+                    .font(.system(size: 16)).foregroundStyle(needed ? Color.accentColor : Color.secondary).frame(width: 22)
                     .accessibilityHidden(true)
-                Text(descriptor.title).font(.callout)
+                Text(descriptor.title).font(.callout.weight(needed ? .medium : .regular))
+                    .foregroundStyle(needed ? Color.accentColor : Color.primary)
+                    .accessibilityLabel(needed ? "\(descriptor.title)，当前需要" : descriptor.title)
                 Button {
                     showingInfo.toggle()
                 } label: {
