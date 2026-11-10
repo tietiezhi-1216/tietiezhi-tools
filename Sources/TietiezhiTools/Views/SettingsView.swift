@@ -17,7 +17,7 @@ struct SettingsView: View {
             PermissionManagementView(store: store, permissions: permissions)
                 .tabItem { Label("权限管理", systemImage: "hand.raised") }.tag(HostSettingsPage.permissions)
         }
-        .frame(width: 700, height: 620)
+        .frame(width: 640, height: 440)
         .onAppear { permissions.refresh() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             permissions.refresh()
@@ -48,68 +48,102 @@ struct PermissionManagementView: View {
     @ObservedObject var permissions: HostPermissionCenter
 
     var body: some View {
-        Form {
-            Section {
-                Text("系统权限统一授予 Tietiezhi Tools，插件按声明使用。只在你点击授权时请求；更改或撤销请前往系统隐私设置。")
-                    .font(.callout).foregroundStyle(.secondary)
-                HStack {
-                    if let request = permissions.pendingRequest {
-                        let missing = request.permissions.contains { permissions.status($0) != .authorized }
-                        Text(
-                            missing
-                                ? "「\(request.pluginName)」需要下列权限，请授权后重新执行。" : "所需权限已就绪，请返回「\(request.pluginName)」重新执行。"
-                        )
-                        .font(.callout.weight(.medium))
-                        Spacer()
-                        Button("完成") { permissions.pendingRequest = nil }
-                    } else {
-                        Text("已安装插件的使用用途会显示在对应权限下方。")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Spacer()
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                if let request = permissions.pendingRequest {
+                    let missing = request.permissions.contains { permissions.status($0) != .authorized }
+                    Text(missing ? "「\(request.pluginName)」需要授权" : "已就绪，请返回「\(request.pluginName)」重试")
+                        .font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                    Button {
+                        permissions.pendingRequest = nil
+                    } label: {
+                        Image(systemName: "xmark")
                     }
-                    Button("刷新状态") { permissions.refresh() }
+                    .buttonStyle(.plain).foregroundStyle(.secondary)
+                    .help("关闭提示").accessibilityLabel("关闭权限提示")
+                }
+                Spacer(minLength: 0)
+                Button {
+                    permissions.refresh()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.plain).foregroundStyle(.secondary)
+                .help("刷新权限状态").accessibilityLabel("刷新权限状态")
+            }
+            .padding(.horizontal, 24).padding(.top, 16)
+
+            Form {
+                Section {
+                    ForEach(permissions.drivers, id: \.descriptor.id) { driver in
+                        PermissionRow(store: store, permissions: permissions, descriptor: driver.descriptor)
+                    }
                 }
             }
-            ForEach(permissions.drivers, id: \.descriptor.id) { driver in
-                permissionSection(driver.descriptor)
-            }
+            .formStyle(.grouped)
         }
-        .formStyle(.grouped)
         .controlSize(.regular)
         .accessibilityIdentifier("host.permissions")
     }
+}
 
-    private func permissionSection(_ descriptor: HostPermissionDescriptor) -> some View {
+private struct PermissionRow: View {
+    @ObservedObject var store: PluginStore
+    @ObservedObject var permissions: HostPermissionCenter
+    let descriptor: HostPermissionDescriptor
+    @ViewState private var showingInfo = false
+
+    var body: some View {
         let status = permissions.status(descriptor.id)
-        let requested = permissions.pendingRequest?.permissions.contains(descriptor.id) == true
-        return Section {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: descriptor.symbol).font(.system(size: 18)).foregroundStyle(.secondary).frame(
-                    width: 24)
-                VStack(alignment: .leading, spacing: 5) {
-                    HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                Image(systemName: descriptor.symbol)
+                    .font(.system(size: 16)).foregroundStyle(.secondary).frame(width: 22)
+                    .accessibilityHidden(true)
+                Text(descriptor.title).font(.callout)
+                Button {
+                    showingInfo.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .buttonStyle(.plain).foregroundStyle(.secondary)
+                .help("查看用途").accessibilityLabel("\(descriptor.title)用途")
+                .popover(isPresented: $showingInfo) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text(descriptor.title).font(.headline)
-                        if requested { Text("当前需要").font(.caption).foregroundStyle(.tint) }
+                        Text(descriptor.summary).font(.callout).foregroundStyle(.secondary)
+                        if !usages.isEmpty {
+                            Divider()
+                            ViewThatFits(in: .vertical) {
+                                usageList
+                                ScrollView { usageList }
+                            }.frame(maxHeight: 180)
+                        }
+                        Button("在系统设置中管理") { permissions.openSettings(descriptor.id) }
+                            .font(.callout)
                     }
-                    Text(descriptor.summary).font(.caption).foregroundStyle(.secondary)
-                    Text(status.title).font(.caption).foregroundStyle(
-                        status == .authorized ? Color.green : Color.secondary)
+                    .padding(20).frame(width: 320)
                 }
                 Spacer(minLength: 8)
-                if status == .notDetermined || status == .notGranted {
+                Text(status.title).font(.callout)
+                    .foregroundStyle(status == .authorized ? Color.green : Color.secondary)
+                    .frame(width: 82, alignment: .trailing)
+                if status == .notDetermined || status == .notGranted, permissions.messages[descriptor.id] == nil {
                     Button(permissions.requesting == descriptor.id ? "请求中…" : "授权…") {
                         Task { await permissions.request(descriptor.id) }
                     }.disabled(permissions.requesting != nil)
                         .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).request")
+                        .frame(width: 88, alignment: .trailing)
+                } else {
+                    Button("系统设置") { permissions.openSettings(descriptor.id) }
+                        .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).settings")
+                        .frame(width: 88, alignment: .trailing)
                 }
-                Button("系统设置") { permissions.openSettings(descriptor.id) }
-                    .accessibilityIdentifier("host.permission.\(descriptor.id.rawValue).settings")
             }
-            ForEach(usages(descriptor.id), id: \.id) { usage in
-                Text(usage.text).font(.caption).foregroundStyle(.secondary)
-            }
+            .frame(minHeight: 38)
             if let message = permissions.messages[descriptor.id] {
                 Text(message).font(.caption).foregroundStyle(.secondary)
+                    .padding(.leading, 34)
             }
         }
     }
@@ -118,9 +152,19 @@ struct PermissionManagementView: View {
         let id: String
         let text: String
     }
-    private func usages(_ id: HostPermissionID) -> [Usage] {
+    private var usageList: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(usages, id: \.id) { usage in
+                Text(usage.text).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+    private var usages: [Usage] {
         store.installed.compactMap { plugin in
-            guard let declaration = permissions.declarations(for: plugin.manifest).first(where: { $0.id == id }) else {
+            guard
+                let declaration = permissions.declarations(for: plugin.manifest).first(where: { $0.id == descriptor.id }
+                )
+            else {
                 return nil
             }
             let state = plugin.isEnabled ? "" : " · 插件已停用"
