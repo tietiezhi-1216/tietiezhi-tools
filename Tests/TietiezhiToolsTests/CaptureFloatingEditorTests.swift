@@ -142,7 +142,14 @@ struct CaptureFloatingEditorTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let controller = ScreenshotController(directory: folder)
         let original = try fixture(width: 640, height: 320)
-        let editor = CaptureFloatingEditor(document: CaptureDocument(image: original), controller: controller)
+        let visible = try #require(NSScreen.main?.visibleFrame)
+        let toolbarWidth = min(CaptureFloatingLayout.toolbarSize.width, visible.width - 16)
+        let horizontalMove = min(55, max(0, (visible.width - toolbarWidth - 16) / 2))
+        // Start with room for the requested motion; boundary clamping is tested separately.
+        let preferred = CGRect(x: visible.maxX - 8 - horizontalMove - 640,
+                               y: visible.midY - 160, width: 640, height: 320)
+        let editor = CaptureFloatingEditor(document: CaptureDocument(image: original), controller: controller,
+                                           preferredFrame: preferred)
         defer { editor.close() }
         editor.show()
         for _ in 0..<3 { await Task.yield() }
@@ -166,11 +173,11 @@ struct CaptureFloatingEditorTests {
         }
         editor.toolsPanel.makeKeyAndOrderFront(nil)
         editor.canvasPanel.sendEvent(try event(.leftMouseDown, dx: 0, dy: 0))
-        editor.canvasPanel.sendEvent(try event(.leftMouseDragged, dx: 25, dy: -10))
-        editor.canvasPanel.sendEvent(try event(.leftMouseDragged, dx: 55, dy: -35))
-        editor.canvasPanel.sendEvent(try event(.leftMouseUp, dx: 55, dy: -35))
-        #expect(editor.imageFrame == before.offsetBy(dx: 55, dy: -35))
-        #expect(editor.toolsPanel.frame == toolbar.offsetBy(dx: 55, dy: -35))
+        editor.canvasPanel.sendEvent(try event(.leftMouseDragged, dx: horizontalMove / 2, dy: -10))
+        editor.canvasPanel.sendEvent(try event(.leftMouseDragged, dx: horizontalMove, dy: -35))
+        editor.canvasPanel.sendEvent(try event(.leftMouseUp, dx: horizontalMove, dy: -35))
+        #expect(editor.imageFrame == before.offsetBy(dx: horizontalMove, dy: -35))
+        #expect(editor.toolsPanel.frame == toolbar.offsetBy(dx: horizontalMove, dy: -35))
         #expect(editor.document.marks.isEmpty && editor.document.undoCount == 0)
         #expect(editor.document.image === original)
     }

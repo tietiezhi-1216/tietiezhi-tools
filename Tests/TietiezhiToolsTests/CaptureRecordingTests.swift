@@ -75,9 +75,9 @@ struct CaptureRecordingTests {
         options.crop = CGRect(x: 0, y: 0.75, width: 1, height: 0.25)
         let cropped = try await frame(source, options: options)
         #expect(cropped.width == 128 && cropped.height == 24)
-        let color = try #require(NSBitmapImageRep(cgImage: cropped).colorAt(x: 20, y: 12)?.usingColorSpace(.deviceRGB))
+        let color = try #require(NSBitmapImageRep(cgImage: cropped).colorAt(x: 20, y: 12)?.usingColorSpace(.sRGB))
         let raw = try await AVAssetImageGenerator(asset: AVURLAsset(url: source)).image(at: CMTime(seconds: 0.2, preferredTimescale: 600)).image
-        let reference = try #require(NSBitmapImageRep(cgImage: raw).colorAt(x: 20, y: 90)?.usingColorSpace(.deviceRGB))
+        let reference = try #require(NSBitmapImageRep(cgImage: raw).colorAt(x: 20, y: 90)?.usingColorSpace(.sRGB))
         #expect(abs(color.greenComponent - reference.greenComponent) < 0.03)
         #expect(abs(color.redComponent - reference.redComponent) < 0.03)
         #expect(color.greenComponent > 0.8 && color.blueComponent < 0.2)
@@ -240,7 +240,14 @@ struct CaptureRecordingTests {
     }
     private func makeVideo(at url: URL, quadrants: Bool = false) async throws {
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: 128, AVVideoHeightKey: 96])
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
+            AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: 128, AVVideoHeightKey: 96,
+            AVVideoColorPropertiesKey: [
+                AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
+            ],
+        ])
         let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32ARGB, kCVPixelBufferWidthKey as String: 128, kCVPixelBufferHeightKey as String: 96])
         writer.add(input)
         guard writer.startWriting() else { throw writer.error ?? PluginError.invalid("测试视频编码失败。") }
@@ -251,7 +258,7 @@ struct CaptureRecordingTests {
             CVPixelBufferCreate(kCFAllocatorDefault, 128, 96, kCVPixelFormatType_32ARGB, [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary, &pixel)
             let buffer = try #require(pixel)
             CVPixelBufferLockBaseAddress(buffer, [])
-            let context = try #require(CGContext(data: CVPixelBufferGetBaseAddress(buffer), width: 128, height: 96, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue))
+            let context = try #require(CGContext(data: CVPixelBufferGetBaseAddress(buffer), width: 128, height: 96, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: #require(CGColorSpace(name: CGColorSpace.sRGB)), bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue))
             context.setFillColor(NSColor.red.cgColor); context.fill(CGRect(x: 0, y: 0, width: 64, height: 96))
             context.setFillColor(NSColor.blue.cgColor); context.fill(CGRect(x: 64, y: 0, width: 64, height: 96))
             if quadrants { context.setFillColor(NSColor.green.cgColor); context.fill(CGRect(x: 0, y: 0, width: 128, height: 24)) }
