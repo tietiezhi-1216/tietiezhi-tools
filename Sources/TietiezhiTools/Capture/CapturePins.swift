@@ -515,7 +515,7 @@ struct CapturePinsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Picker("贴图组", selection: Binding(get: { manager.activeGroupID }, set: manager.selectGroup)) {
+                Picker("贴图组", selection: Binding(get: { manager.activeGroupID }, set: { manager.selectGroup($0) })) {
                     ForEach(manager.groups) { group in Text(group.name).tag(group.id) }
                 }.frame(maxWidth: 260)
                 Button("新建分组") { manager.createGroup() }
