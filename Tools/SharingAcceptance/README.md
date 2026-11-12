@@ -4,7 +4,7 @@
 
 ## 运行边界
 
-- 用 `--sharing-acceptance <目录>` 显式启动调试应用；目录只能位于当前用户的 `~/Library/Caches/com.tietiezhi.tools/SharingAcceptance/<独立运行目录>`，归当前用户所有，权限为 `0700`，不允许符号链接。
+- 用 `--sharing-acceptance <目录>` 显式启动调试应用；目录只能位于当前用户的 `~/Library/Caches/app.untitled/SharingAcceptance/<独立运行目录>`，归当前用户所有，权限为 `0700`，不允许符号链接。
 - 验收使用目录下的独立 `Plugins/`，不加载用户原有截图插件或全局快捷键。配对文件 `pairing-key` 与 JSON 命令文件必须为当前用户拥有的 `0600` 普通文件。
 - 临时配对密钥为随机 256 位值，经已验证主机身份的 SSH 传输，不能放在命令行参数、日志或仓库中。结束后删除两端临时密钥。
 - 控制窗口只统计具有验收标记的固定按键与点击；不记录普通用户输入内容。只有该窗口处于前台且获得键盘焦点时，调试接收端才允许输入投递。
@@ -16,7 +16,7 @@
 在两端显式启动、导入插件并放置同一个临时配对文件后，在本机准备私有会话 JSON：
 
 ```json
-{"local":"/Users/USER/Library/Caches/com.tietiezhi.tools/SharingAcceptance/RUN","remote":"/Users/USER/Library/Caches/com.tietiezhi.tools/SharingAcceptance/RUN"}
+{"local":"/Users/USER/Library/Caches/app.untitled/SharingAcceptance/RUN","remote":"/Users/USER/Library/Caches/app.untitled/SharingAcceptance/RUN"}
 ```
 
 会话 JSON 也应为 `0600`。测试使用已配置且启用严格主机密钥验证的 SSH 别名：
@@ -40,8 +40,8 @@ python3 Tools/SharingAcceptance/run.py --session /path/to/private-session.json \
 
 ```bash
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos14.0 \
-  Sources/TietiezhiTools/Sharing/SharingProtocol.swift \
-  Sources/TietiezhiTools/Sharing/SharingTransport.swift \
+  Sources/Untitled/Sharing/SharingProtocol.swift \
+  Sources/Untitled/Sharing/SharingTransport.swift \
   Tools/SharingAcceptance/SyntheticPeer.swift -o /path/to/SyntheticPeer
 ```
 

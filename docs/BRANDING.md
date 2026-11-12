@@ -17,4 +17,4 @@ python3 scripts/build-readme-icon.py
 
 显示名、窗口、应用菜单、构建产物使用 Untitled。菜单栏用原生 `scribble` 符号以保持小尺寸清楚。新仓库链接、Schema 和后续 Release 地址使用 `tietiezhi-1216/untitled`。
 
-为保留身份与数据，Bundle ID `com.tietiezhi.tools`、module / Xcode scheme `TietiezhiTools`、Application Support、Keychain、插件 ID 及既有音频驱动标识继续沿用。新默认导出目录为 `~/Pictures/Untitled`；旧 `~/Pictures/Tietiezhi Tools` 已存在时继续使用，自定义路径不变。历史目录保留原 Release 下载 URL 与 SHA-256，不重写旧包。
+包、模块、可执行文件、Xcode 工程 / target / scheme 均使用 `Untitled`，Bundle ID 为 `app.untitled`，环境变量为 `UNTITLED_*`。旧身份只作为迁移元数据和冻结发行目录保留，详见 [身份迁移](MIGRATION.md)。仓库 URL 与许可证作者仍使用真实 GitHub 账户；发布由 [PR 与 CI/CD 流程](RELEASING.md) 管理。

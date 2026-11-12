@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import zipfile
 
-DEFAULT_REPOSITORY = "tietiezhi-1216/untitled"
+DEFAULT_REPOSITORY = json.loads((Path(__file__).resolve().parent.parent / "Sources/Untitled/Resources/Project.json").read_text())["repository"].removeprefix("https://github.com/")
 
 
 def read_plugin(directory, root):
@@ -49,8 +49,8 @@ def main():
         parser.error("invalid release tag")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*", args.repository):
         parser.error("repository must be owner/repo")
-    if args.write_catalog and (args.plugin or args.repository != DEFAULT_REPOSITORY):
-        parser.error("--write-catalog requires the complete central repository; selected builds write a local catalog only")
+    if args.write_catalog:
+        parser.error("中央目录仅由合并后的 CI/CD 发布，不再写入 main；请使用本地输出目录")
     root = Path(__file__).resolve().parent.parent
     if args.plugin:
         directories = []
@@ -96,8 +96,6 @@ def main():
     catalog = {"schemaVersion": 1, "plugins": entries}
     text = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
     (output / "catalog.json").write_text(text)
-    if args.write_catalog:
-        (root / "Plugins" / "catalog.json").write_text(text)
 
 
 if __name__ == "__main__":

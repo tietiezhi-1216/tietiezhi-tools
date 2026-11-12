@@ -1,6 +1,6 @@
 # Untitled 开发说明
 
-项目只面向 macOS。Swift Package 与 Xcode 共用源码；显示名为 Untitled，兼容 module / scheme 名保留 TietiezhiTools。插件贡献见 [CONTRIBUTING](../CONTRIBUTING.md)。
+项目只面向 macOS。Swift Package 与 Xcode 共用源码；包、module、可执行文件与 Xcode scheme 统一为 Untitled。插件贡献见 [CONTRIBUTING](../CONTRIBUTING.md)。
 
 
 ### 原生界面与 Liquid Glass
@@ -19,8 +19,8 @@
 swift build
 swift test --no-parallel
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.9.0
-# 仅在 Release 资产实际发布后，追加 --write-catalog 更新在线商店
+python3 scripts/package-plugins.py --tag v0.10.0
+# 只生成本地产物；在线商店由合并后的 CI/CD 自动部署
 ```
 
 AppKit 窗口焦点测试请显式串行运行 `swift test --no-parallel`，避免多个界面测试互相抢夺 key window。若 Swift 6.4 命令行工具报告找不到 `TestingMacros`，可显式传入随工具链安装的插件路径（完整 Xcode 通常无需此选项）：
@@ -47,30 +47,30 @@ printf '%s\n' '证书的40位SHA-1' > .signing-identity
 
 `.signing-identity` 是仅用于本机的配置，不提交到仓库，也不包含私钥或密码。`scripts/run.sh` 同样读取此配置。配置了证书后，构建会启用 Hardened Runtime、摄像头与麦克风访问 entitlement 和安全时间戳，并在签名校验成功后替换旧构建；证书或私钥不可用时会直接报错，不会退回临时签名。
 
-也可以用环境变量 `TIETIEZHI_SIGNING_IDENTITY` 覆盖本机配置。未配置身份时保留临时签名，适用于 CI 和首次试用；显式设置为 `-` 也可使用临时签名。临时签名在代码变化后可能无法沿用先前的系统授权。从临时签名切换为证书签名时，需要重新确认系统权限。公开分发仍需使用 Developer ID Application 证书并完成 Apple 公证；此脚本不自动提交公证。
+也可以用环境变量 `UNTITLED_SIGNING_IDENTITY` 覆盖本机配置。未配置身份时保留临时签名，适用于 CI 和首次试用；显式设置为 `-` 也可使用临时签名。临时签名在代码变化后可能无法沿用先前的系统授权。从临时签名切换为证书签名时，需要重新确认系统权限。公开分发仍需使用 Developer ID Application 证书并完成 Apple 公证；此脚本不自动提交公证。
 
-如果切换签名后，系统设置中开关已开启，应用却仍显示未授权，旧记录可能仍绑定临时签名的代码哈希。可先退出应用，仅重置本应用对应的权限，例如 `tccutil reset ScreenCapture com.tietiezhi.tools`，再打开当前签名版本，从应用的权限管理重新请求并由用户允许；系统提示时选择退出并重新打开。辅助功能和输入监控对应 `Accessibility`、`ListenEvent`，仅在相应权限出现同样问题时分别处理。无需重置其他软件或所有权限。[Apple 的代码签名说明](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)介绍了系统如何用指定要求识别更新后的应用。
+如果切换签名后，系统设置中开关已开启，应用却仍显示未授权，旧记录可能仍绑定临时签名的代码哈希。可先退出应用，仅重置本应用对应的权限，例如 `tccutil reset ScreenCapture app.untitled`，再打开当前签名版本，从应用的权限管理重新请求并由用户允许；系统提示时选择退出并重新打开。辅助功能和输入监控对应 `Accessibility`、`ListenEvent`，仅在相应权限出现同样问题时分别处理。无需重置其他软件或所有权限。[Apple 的代码签名说明](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)介绍了系统如何用指定要求识别更新后的应用。
 
 Xcode 开发入口：
 
 ```bash
-open TietiezhiTools.xcodeproj
+open Untitled.xcodeproj
 ```
 
-选择 `TietiezhiTools` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 与命令行构建统一采用非 App Sandbox 配置，保留 Hardened Runtime 与摄像头/麦克风 entitlement；系统受保护操作仍需用户授权。`.signing-identity` 只作用于终端构建，Xcode 中需另外配置同一签名身份。正式分发需配置自己的签名和公证。
+选择 `Untitled` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 与命令行构建统一采用非 App Sandbox 配置，保留 Hardened Runtime 与摄像头/麦克风 entitlement；系统受保护操作仍需用户授权。`.signing-identity` 只作用于终端构建，Xcode 中需另外配置同一签名身份。正式分发需配置自己的签名和公证。
 
-Swift Package 与 Xcode 工程共用 `Sources/TietiezhiTools`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
+Swift Package 与 Xcode 工程共用 `Sources/Untitled`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
 
 发布完成后，可额外执行真实 GitHub 下载与安装检查：
 
 ```bash
-TIETIEZHI_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
+UNTITLED_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
 ```
 
 ## 目录
 
 ```text
-Sources/TietiezhiTools/
+Sources/Untitled/
 ├── App/         # 窗口、菜单栏和统一外观
 ├── Capture/     # 截图、编辑、贴图、滚动拼接、录制、OCR、文档导出与本地模型
 ├── Models/      # 应用外观设置
@@ -87,7 +87,7 @@ scripts/         # 本地构建与插件打包
 
 ## 数据与兼容标识
 
-显示名和 GitHub 仓库更名不迁移 Bundle ID、已安装插件、Keychain、偏好与历史数据。技术标识继续沿用 `com.tietiezhi.tools`，避免丢失已有身份。应用支持目录不在仓库内。普通 `swift run` 不会生成图标和 helper，完整体验使用 `scripts/run.sh`。品牌资源见 [BRANDING.md](BRANDING.md)。
+包、module、可执行文件、Xcode 工程 / scheme 使用 Untitled，Bundle ID 为 `app.untitled`。0.10.0 首次启动迁移旧配置、插件身份与历史数据，系统权限和虚拟音频设备需按新版身份重新确认；详细边界见 [迁移说明](MIGRATION.md)。普通 `swift run` 不生成 helper 和完整应用包，使用 `scripts/run.sh` 开发应用。
 
 ## 验证范围
 
@@ -95,10 +95,8 @@ scripts/         # 本地构建与插件打包
 
 没有完整 Xcode 的机器可以执行 Swift Package 构建、测试、ICNS 与 plist 检查，但不能声称已通过 Xcode target 编译。双 Mac 键鼠、驱动、录音和真实媒体质量按相应插件说明验收，不以单机自动测试替代。
 
-## 发布次序
+## Pull Request 与发布
 
-先固定源码提交，完成测试、Release 构建、插件包与完整 Xcode CI，再从同一个提交生成应用 ZIP。确认包中版本、架构、图标、许可证和签名，生成 SHA-256；发布资产不能混入 `dist/plugins/` 中旧版本的历史 ZIP。
+所有修改在功能分支或 fork 进行，提交 Pull Request 并通过必需的 verify 检查。不得直接向 main 推送或先在本地合并再推送；agents 不自行合并 PR。
 
-正式分发使用 Developer ID 与 Apple 公证，公证后将票据 staple 到应用再生成最终 ZIP。公证使用独立的 notarytool 认证配置，签名证书不能代替该认证。缺少公证或完整真机验收的版本可以作为明确标注限制的预览版发布，不宣称已通过 Gatekeeper 或全部性能验收。
-
-先上传本版本对应的应用与插件资产并验证实际下载，再更新 `Plugins/catalog.json` 和 main，最后验证商店目录的真实下载与安装。标签指向构建提交，目录更新单独提交；不移动旧标签或替换已发布的同版本资产。发布说明列出验证范围、签名 / 公证状态、架构与已知限制。
+维护者合并后，CI/CD 自动完成版本判断、构建、签名 / 公证（按配置）、打包、Release 下载校验和插件目录部署。PR 产物仅供审查，不拥有发布密钥。默认预览与正式公证模式、环境凭据、main 保护和失败恢复见 [CI/CD 与发布](RELEASING.md)。

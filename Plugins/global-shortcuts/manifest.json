@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "id": "com.tietiezhi.global-shortcuts",
+  "id": "app.untitled.global-shortcuts",
   "name": "全局快捷键",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "summary": "用自定义快捷键打开应用、打开网址、运行 macOS 快捷指令，或唤起主面板。",
-  "author": "tietiezhi-1216",
+  "author": "Untitled contributors",
   "repository": "https://github.com/tietiezhi-1216/untitled",
-  "minimumHostVersion": "0.9.0",
+  "minimumHostVersion": "0.10.0",
   "actions": [
     "openApplication",
     "openURL",

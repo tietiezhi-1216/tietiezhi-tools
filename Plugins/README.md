@@ -1,6 +1,6 @@
 # 插件开发协议 v2
 
-本仓库接收各种用途的插件，清单放在 `Plugins/<plugin>/`；插件也可以有独立源码仓库与 GitHub Release。首页商店读取 `Plugins/catalog.json` 并核对 SHA-256，用户也可以直接安装离线 ZIP。包根目录仅允许 `manifest.json`、`README.md`、`LICENSE`。
+本仓库接收各种用途的插件，清单放在 `Plugins/<plugin>/`；插件也可以有独立源码仓库与 GitHub Release。0.10.0+ 首页商店读取 CI 部署分支中的 `plugin-catalog/catalog.json` 并核对 SHA-256，用户也可以直接安装离线 ZIP。包根目录仅允许 `manifest.json`、`README.md`、`LICENSE`。
 
 开发流程见[项目 skill](../.agents/skills/untitled-plugin-development/SKILL.md)，共享与二次开发要求见[贡献规范](../CONTRIBUTING.md)，高权限和完全接管的实现边界见[权限规范](../docs/PERMISSIONS.md)。
 
@@ -150,9 +150,9 @@ python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin --repository 
 
 脚本默认只生成本地 ZIP 和 catalog，不上传、不修改在线目录。`--plugin` 可重复使用，支持插件目录或仓库内 slug；仓库外目录必须带自己的 README 与 LICENSE。优先采用插件自己的 LICENSE，仓库内未提供时才继承根 MIT。
 
-上传 ZIP 到对应 Release，资产实际可下载后再更新 main 的商店目录。统一全量打包可追加 `--write-catalog`；局部和独立仓库打包禁止覆盖中央目录。中央目录也可人工收录独立 GitHub Release，必须核对 ID、版本及 SHA-256。不要替换已发布的同版本资产；修改清单、说明或许可导致包变化时递增插件版本并重新生成校验值。历史目录引用旧仓库名的 Release 保持原校验值，依赖 GitHub 仓库改名重定向继续下载。
+开发通过功能分支和 Pull Request 交付；维护者合并后由 CI/CD 上传并验证发行资产，再部署 `plugin-catalog` 分支。独立包的目录记录通过 `Plugins/catalog-external.json` 提交。打包器只写本地输出，不再用 `--write-catalog` 改写 main。已发布的同版本资产不可替换；清单、说明或许可导致包变化时递增版本。
 
-本地配置位于 `~/Library/Application Support/com.tietiezhi.tools/Plugins/<id>.json`。升级替换清单并保留用户操作与启停状态；禁用释放快捷键，卸载删除该插件配置。配置不会随源码发布。
+本地配置位于 `~/Library/Application Support/app.untitled/Plugins/<id>.json`。升级替换清单并保留用户操作与启停状态；禁用释放快捷键，卸载删除该插件配置。配置不会随源码发布。
 
 
 ### 默认动作（宿主 0.6.0+）
@@ -162,3 +162,7 @@ python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin --repository 
 宿主安装或升级时按模板 ID 初始化一次；已编辑、清空、停用或删除的默认操作在后续升级中保持原样。旧配置会按动作匹配到模板，保留原操作 ID。冲突时不会覆盖其他操作，新动作不绑定并显示提示。`host.restoreDefaultCommands` 命令显式恢复默认模板，保留其他自建操作。此机制对所有插件通用。
 
 截图新增组件 `capture.pins` 和命令 `capture.delayed`、`capture.copy`、`capture.repeatRegion`、`capture.restorePin`、`capture.cycleGroup`、`capture.closePins`、`capture.hideOtherPins`、`capture.clickThrough`、`capture.pinFiles`、`capture.toggleHotKeys`。它们仍由清单选择槽位，主应用不指定插件的面板布局。
+
+## PR 与自动部署
+
+插件源码、清单和独立目录来源通过 Pull Request 提交。CI 校验包及宿主兼容性；维护者合并后自动发布新版本并部署目录。main 中的 `Plugins/catalog.json` 是给旧客户端保留的冻结目录，不作为新版本目录来源。独立来源写入 `Plugins/catalog-external.json`，字段与 CatalogEntry 相同。详见 [CI/CD](../docs/RELEASING.md)。

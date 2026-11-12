@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Tietiezhi Tools contributors. MIT License.
+// Copyright (c) 2026 Untitled contributors. MIT License.
 #pragma once
 #include <array>
 #include <atomic>

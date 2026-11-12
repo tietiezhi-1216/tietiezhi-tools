@@ -2,6 +2,21 @@
 
 欢迎提交任何用途的插件，也欢迎围绕同一需求提供不同实现。接收依据是可维护的接口、可说明的行为与可复用的源码。用户自行选择安装什么，开发者可以保留私有插件、独立发布，或 fork 后继续开发。
 
+## 通过 Pull Request 协作
+
+从 main 创建功能分支；外部贡献者可先 fork。只向自己的分支推送，再向本仓库 main 创建 PR，不直接向 main 推送。main 要求 `verify` 检查通过、分支与 main 同步、讨论已解决，并禁止强推与删除；维护者通过 GitHub 合并 PR，agents 不代替维护者自行合并。
+
+```bash
+git switch -c feat/my-plugin
+# 修改、验证并提交
+git push -u origin feat/my-plugin
+# 然后在 GitHub 创建 Pull Request
+```
+
+PR CI 执行名称/版本检查、自动测试、Swift Package / Xcode 构建和插件打包，并提供可下载的审查产物。来自 fork 的 PR 不获取发布密钥。应用代码、资源或驱动变更需要递增宿主版本与 build number；插件清单变更递增插件版本。
+
+合并到 main 后，GitHub Actions 对新版本自动发布应用与插件、核验下载并部署插件商店目录。纯文档等变更不重发同版本资产。配置与中断恢复见 [CI/CD 与发布](docs/RELEASING.md)。
+
 ## 实现方式
 
 已有宿主能力可通过 manifest v2 组合成独立 ZIP。全新的原生能力连同服务、provider 与测试提交到宿主，再由清单启用。任意 Swift 动态库、JavaScript、Shell、agent 执行器不是当前 ZIP 支持的格式；扩展运行时须同步实现协议、权限和停止机制。
@@ -39,7 +54,7 @@ python3 scripts/package-plugins.py --tag v1.0.0 \
 
 独立目录必须带 README 和 LICENSE。打包器优先使用插件自己的许可，不改写成宿主的 MIT。用户可通过商店“从 ZIP 安装…”导入；独立分享不必先进入中央商店。当前源码地址和商店下载地址支持 HTTPS GitHub 仓库与 GitHub Release，离线 ZIP 可自行传递。
 
-中央目录 `Plugins/catalog.json` 可收录独立 Release，提供准确 ID、版本、下载地址和 SHA-256。宿主核对校验值、包身份、宿主能力和清单。统一打包可用 `--write-catalog`，但须等资产实际上传且可下载后执行；局部或独立打包不会覆盖中央目录。
+中央目录由 CI/CD 在 `plugin-catalog` 分支部署，提供准确 ID、版本、下载地址和 SHA-256。宿主核对校验值、包身份、宿主能力和清单。打包只写本地目录；main 中的 `Plugins/catalog.json` 保留给旧版客户端，不手工改写。独立插件通过 PR 提交目录来源配置，CI 验证其包后收录。
 
 修改已发布包要发布新版本。升级沿用 ID 并保留配置；独立 fork 换新 ID，避免覆盖原插件。复制代码保留作者与许可；加入宿主编译的代码遵循宿主 MIT 及其依赖的许可条件。
 

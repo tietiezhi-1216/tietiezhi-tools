@@ -10,12 +10,12 @@ description: Create, modify, debug, and package plugins for the Untitled macOS a
 ## 选择实现方式
 
 - **组合已有能力**：在 `Plugins/<slug>/` 修改 manifest v2、README 和可选 LICENSE。可独立发布 ZIP，无需重编译宿主。
-- **新增原生能力**：在 `Sources/TietiezhiTools/<Feature>/` 实现服务与 `PluginUIProvider`，由 `App/PluginComposition.swift` 注册；同时维护 Xcode 源文件引用。原生代码随宿主编译，ZIP 仍只声明能力和布局。
+- **新增原生能力**：在 `Sources/Untitled/<Feature>/` 实现服务与 `PluginUIProvider`，由 `App/PluginComposition.swift` 注册；同时维护 Xcode 源文件引用。原生代码随宿主编译，ZIP 仍只声明能力和布局。
 - **脚本、动态可执行扩展、agent 接管**：当前没有这种运行时。按 [权限与执行规范](../../../docs/PERMISSIONS.md) 实现真正的执行边界、停止机制与授权路径；不要把可执行文件塞进现有 ZIP 或添加无实际作用的开关。
 
 ## 开发
 
-1. 检查 `git status --short`，保留用户现有改动。读相关清单，以及 `Plugins/PluginManifest.swift`、`Plugins/PluginUIRegistry.swift`、`Runtime/HostPermissions.swift` 中涉及的接口；这些 Swift 路径均相对 `Sources/TietiezhiTools/`。
+1. 检查 `git status --short`，保留用户现有改动。读相关清单，以及 `Plugins/PluginManifest.swift`、`Plugins/PluginUIRegistry.swift`、`Runtime/HostPermissions.swift` 中涉及的接口；这些 Swift 路径均相对 `Sources/Untitled/`。
 2. 新插件可运行脚手架；它生成可安装、可打开主面板的示例，随后按需求替换业务内容：
 
    ```bash
@@ -40,6 +40,6 @@ python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin
 
 AppKit 焦点测试串行运行。TestingMacros 兼容命令及 Xcode 构建见 [开发说明](../../../docs/DEVELOPMENT.md)。增加原生源码后验证 Swift Package 与 Xcode target 均收录；缺少 Xcode 时明确报告未验证这一项。
 
-独立发布可指定 `--repository alice/my-plugin`；`--plugin` 也接受仓库外插件目录，这时必须附带自己的 LICENSE。默认只生成本地 ZIP 和目录，不更新在线商店。对应 Release 资产确已发布并可下载后才使用 `--write-catalog`；已发布同版本资产保持不变。
+独立发布可指定 `--repository alice/my-plugin`；`--plugin` 也接受仓库外插件目录，这时必须附带自己的 LICENSE。默认只生成本地 ZIP 和目录，不更新在线商店。在线目录由合并后的 GitHub CI/CD 部署到 `plugin-catalog` 分支；不再使用 `--write-catalog` 改写 main。已发布同版本资产保持不变。
 
-交付说明写明文件、构建产物、验证及仍需真机验收的部分。除非任务包含发布，不自动上传 Release、推送代码或安装系统驱动。
+交付说明写明文件、构建产物、验证及仍需真机验收的部分。开发使用功能分支和 Pull Request；不直接推送 main、不自行合并 PR、不手工上传 Release。CI 校验通过并经维护者合并后自动部署。用户要求仅本地时不推送；系统驱动安装仍需明确请求。CI/CD 见 [发布说明](../../../docs/RELEASING.md)。

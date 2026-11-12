@@ -3,13 +3,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "TietiezhiTools",
+    name: "Untitled",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "TietiezhiTools", targets: ["TietiezhiTools"])
+        .executable(name: "Untitled", targets: ["Untitled"])
     ],
     targets: [
-        .executableTarget(name: "TietiezhiTools"),
-        .testTarget(name: "TietiezhiToolsTests", dependencies: ["TietiezhiTools"])
+        .executableTarget(name: "Untitled", resources: [.copy("Resources/Project.json")]),
+        .testTarget(name: "UntitledTests", dependencies: ["Untitled"])
     ]
 )

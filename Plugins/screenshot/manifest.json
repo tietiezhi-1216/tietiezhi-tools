@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "id": "com.tietiezhi.screenshot",
+  "id": "app.untitled.screenshot",
   "name": "截图",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
-  "author": "tietiezhi-1216",
+  "author": "Untitled contributors",
   "repository": "https://github.com/tietiezhi-1216/untitled",
-  "minimumHostVersion": "0.9.0",
+  "minimumHostVersion": "0.10.0",
   "actions": [
     "captureRegion",
     "captureWindow",

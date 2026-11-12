@@ -1,4 +1,4 @@
-# 外设共享 1.0.0（主应用 0.9.0+，macOS 14+）
+# 外设共享 1.0.1（主应用 0.10.0+，macOS 14+）
 
 两台 Mac 通过局域网共享键盘、鼠标、麦克风，独立运行，不需要安装 Oink。参考 Oink 的“屏幕边缘键鼠接力 + 应用使用时才采集远端麦克风”体验；**不是 Oink 协议兼容层，也不包含其 GPL 代码**。
 
@@ -8,7 +8,7 @@
 - 双向接力：任一 Mac 都可以将自己的键鼠切换到另一台。两端必须明确允许；同一时刻只有一方控制，不是把每次按键同时广播给两台。
 - 配置左、右、上、下四种相对位置；推过屏幕边缘切换，从进入边缘移回可返回。支持标准按键、修饰键、鼠标移动/点击/多击/拖动和像素滚轮。
 - 按 `⌃⌥⌘K` 切换；按 `⌃⌥⌘Esc` 紧急返回。目标设备的实体键鼠操作也可夺回本机控制。可以在插件的“快捷键”面板自行添加宿主全局操作。
-- 麦克风独立于键鼠控制目标。A 允许发送、B 开启接收且 B 的应用实际使用 `Tietiezhi Microphone` 时，才在 A 检查权限并采集所选实体麦克风。A 的应用可以同时使用其实体麦克风；双方也可以各自发送自己的实体麦克风。
+- 麦克风独立于键鼠控制目标。A 允许发送、B 开启接收且 B 的应用实际使用 `Untitled Microphone` 时，才在 A 检查权限并采集所选实体麦克风。A 的应用可以同时使用其实体麦克风；双方也可以各自发送自己的实体麦克风。
 - 自带独立 HAL 虚拟输入与隐藏 Feed 输出，不要求 BlackHole；**驱动需要用户明确使用管理员命令安装**，发送端不必安装。
 - 禁用插件、卸载插件、退出、断线/心跳超时、锁屏和睡眠时释放输入、恢复光标与停止音频；不会自动重连或自动恢复采集。
 - 安装/启用插件和打开页面不会自动监听网络、请求权限、采集输入、安装驱动或启动麦克风。
@@ -25,7 +25,7 @@
 
 ```bash
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.9.0
+python3 scripts/package-plugins.py --tag v0.10.0
 ```
 
 产物：
@@ -34,7 +34,7 @@ python3 scripts/package-plugins.py --tag v0.9.0
 - `dist/plugins/peripheral-sharing-1.0.0.zip`
 - 应用内 `Contents/Resources/PeripheralAudio/` 包含已构建驱动、许可、说明和显式安装脚本。
 
-将与设备架构匹配的 0.9.0 主应用和 ZIP 放到两台 Mac，在商店点“从 ZIP 安装…”。源码构建结果为本机架构；需要在 Intel 上运行时请相应构建主应用。商店目录需等 GitHub Release 的主应用/插件资产实际发布后再更新，不能把未发布地址写入在线商店。
+将与设备架构匹配的 0.10.0 主应用和 ZIP 放到两台 Mac，在商店点“从 ZIP 安装…”。源码构建结果为本机架构；需要在 Intel 上运行时请相应构建主应用。通过 PR 合并后由 CI/CD 发布主应用与插件、核验下载并部署目录，不能在 PR 中写入尚未发布的在线地址。
 
 键鼠拦截/模拟输入需要**非 App Sandbox 的应用构建**，推荐使用 `build-app.sh` 产物。Xcode 与命令行构建均不启用 App Sandbox，保留 Hardened Runtime 与系统隐私授权。不要绕过系统授权、修改 TCC 或关闭系统安全机制。
 
@@ -59,7 +59,7 @@ python3 scripts/package-plugins.py --tag v0.9.0
 sudo "/path/to/PeripheralAudio/install.sh" install
 # 源码构建
 ./scripts/build-sharing-microphone.sh
-sudo ./Tools/SharingMicrophone/install.sh install "dist/SharingMicrophone/TietiezhiMicrophone.driver"
+sudo ./Tools/SharingMicrophone/install.sh install "dist/SharingMicrophone/UntitledMicrophone.driver"
 ```
 
 方便时重启 Mac，使系统加载驱动；安装器**不会**重启系统音频或打断当前通话。不自动修改系统默认输入或输出。公开分发须使用 Developer ID 签名与公证；本地自签/临时签名不能保证在另一台 Mac 加载。
@@ -68,7 +68,7 @@ sudo ./Tools/SharingMicrophone/install.sh install "dist/SharingMicrophone/Tietie
 
 1. A 选择实体麦克风，开启“允许将本机麦克风同步给对端”。
 2. B 开启“在本机使用对端麦克风”。
-3. B 的会议/录音软件选择 **Tietiezhi Microphone** 为输入，而不是本机内置麦克风。
+3. B 的会议/录音软件选择 **Untitled Microphone** 为输入，而不是本机内置麦克风。
 4. 应用开始读取时，A 才检查麦克风权限；缺失时由 A 的统一权限管理处理。授权后点“检查 / 重试”，不要以为授权会自动开始共享。
 5. A 显示正在发送状态，B 显示接收状态。停止读取、关闭选项、断线或锁屏后停止采集。共享声音只送往隐藏 Feed，不回退到扬声器，避免声反馈。
 
