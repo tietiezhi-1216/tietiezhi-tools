@@ -252,13 +252,14 @@ struct CaptureRecordingTests {
         writer.add(input)
         guard writer.startWriting() else { throw writer.error ?? PluginError.invalid("测试视频编码失败。") }
         writer.startSession(atSourceTime: .zero)
+        let sourceColorSpace = try #require(CGColorSpace(name: CGColorSpace.sRGB))
         for index in 0..<20 {
             while !input.isReadyForMoreMediaData { try await Task.sleep(for: .milliseconds(5)) }
             var pixel: CVPixelBuffer?
             CVPixelBufferCreate(kCFAllocatorDefault, 128, 96, kCVPixelFormatType_32ARGB, [kCVPixelBufferCGImageCompatibilityKey: true, kCVPixelBufferCGBitmapContextCompatibilityKey: true] as CFDictionary, &pixel)
             let buffer = try #require(pixel)
             CVPixelBufferLockBaseAddress(buffer, [])
-            let context = try #require(CGContext(data: CVPixelBufferGetBaseAddress(buffer), width: 128, height: 96, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: #require(CGColorSpace(name: CGColorSpace.sRGB)), bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue))
+            let context = try #require(CGContext(data: CVPixelBufferGetBaseAddress(buffer), width: 128, height: 96, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer), space: sourceColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue))
             context.setFillColor(NSColor.red.cgColor); context.fill(CGRect(x: 0, y: 0, width: 64, height: 96))
             context.setFillColor(NSColor.blue.cgColor); context.fill(CGRect(x: 64, y: 0, width: 64, height: 96))
             if quadrants { context.setFillColor(NSColor.green.cgColor); context.fill(CGRect(x: 0, y: 0, width: 128, height: 24)) }
