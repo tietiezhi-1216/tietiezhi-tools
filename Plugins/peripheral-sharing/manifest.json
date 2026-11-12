@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 2,
+  "id": "com.tietiezhi.peripheral-sharing",
+  "name": "外设共享",
+  "version": "1.0.0",
+  "summary": "两台 Mac 通过加密局域网连接共享键盘、鼠标与按需麦克风。支持屏幕边缘接力、快捷键切换和独立虚拟麦克风。",
+  "author": "tietiezhi-1216",
+  "repository": "https://github.com/tietiezhi-1216/untitled",
+  "minimumHostVersion": "0.9.0",
+  "actions": [
+    "sharePeripherals",
+    "switchPeripheralControl",
+    "stopPeripheralSharing"
+  ],
+  "templates": [
+    {
+      "id": "sharing",
+      "title": "启动或停止共享",
+      "action": "sharePeripherals"
+    },
+    {
+      "id": "switch",
+      "title": "切换键鼠控制",
+      "action": "switchPeripheralControl"
+    },
+    {
+      "id": "stop",
+      "title": "停止全部共享",
+      "action": "stopPeripheralSharing"
+    }
+  ],
+  "permissions": [
+    {
+      "id": "system.accessibility",
+      "reason": "经双方明确允许后拦截本机键鼠并在已配对 Mac 上模拟输入",
+      "optional": true
+    },
+    {
+      "id": "system.inputMonitoring",
+      "reason": "仅在开启键鼠共享时监听按键、指针和紧急返回操作",
+      "optional": true
+    },
+    {
+      "id": "system.microphone",
+      "reason": "仅在允许发送且对端应用使用虚拟输入时采集本机实体麦克风",
+      "optional": true
+    }
+  ],
+  "ui": {
+    "version": 1,
+    "icon": "computermouse",
+    "slots": {
+      "header.leading": [
+        {
+          "id": "icon",
+          "kind": "component",
+          "component": "host.icon"
+        },
+        {
+          "id": "identity",
+          "kind": "component",
+          "component": "host.identity"
+        }
+      ],
+      "header.trailing": [
+        {
+          "id": "enabled",
+          "kind": "component",
+          "component": "host.enabled"
+        },
+        {
+          "id": "more",
+          "kind": "component",
+          "component": "host.more"
+        },
+        {
+          "id": "info",
+          "kind": "component",
+          "component": "host.info"
+        }
+      ],
+      "toolbar.leading": [
+        {
+          "id": "toggle",
+          "kind": "button",
+          "command": "sharing.toggle",
+          "style": "prominent"
+        },
+        {
+          "id": "switch",
+          "kind": "button",
+          "command": "sharing.switch"
+        }
+      ],
+      "toolbar.trailing": [
+        {
+          "id": "shortcuts",
+          "kind": "button",
+          "title": "快捷键",
+          "symbol": "keyboard",
+          "panel": "shortcuts",
+          "presentation": "sheet"
+        }
+      ],
+      "content": [
+        {
+          "id": "dashboard",
+          "kind": "component",
+          "component": "sharing.dashboard"
+        }
+      ],
+      "footer.leading": [
+        {
+          "id": "status",
+          "kind": "component",
+          "component": "sharing.status"
+        }
+      ],
+      "menuBar": [
+        {
+          "id": "menu.open",
+          "kind": "button",
+          "command": "host.openPlugin"
+        },
+        {
+          "id": "menu.toggle",
+          "kind": "button",
+          "command": "sharing.toggle"
+        },
+        {
+          "id": "menu.switch",
+          "kind": "button",
+          "command": "sharing.switch"
+        },
+        {
+          "id": "menu.stop",
+          "kind": "button",
+          "command": "sharing.stop"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": "shortcuts",
+        "title": "外设共享快捷键",
+        "width": 700,
+        "height": 520,
+        "slots": {
+          "toolbar.leading": [
+            {
+              "id": "shortcut.heading",
+              "kind": "component",
+              "component": "host.commandHeading"
+            }
+          ],
+          "toolbar.trailing": [
+            {
+              "id": "shortcut.add",
+              "kind": "component",
+              "component": "host.addCommand"
+            }
+          ],
+          "content": [
+            {
+              "id": "shortcut.commands",
+              "kind": "component",
+              "component": "host.commands"
+            }
+          ],
+          "footer.leading": [
+            {
+              "id": "shortcut.status",
+              "kind": "component",
+              "component": "host.commandStatus"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

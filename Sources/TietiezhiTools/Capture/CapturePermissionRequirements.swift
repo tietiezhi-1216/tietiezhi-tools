@@ -5,7 +5,8 @@ enum CapturePermissionRequirements {
         guard manifest.hasCaptureCapability else { return [] }
         var declarations: [PluginPermissionDeclaration] = []
         if manifest.actions.contains(where: {
-            [.captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording].contains($0)
+            [.captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
+             .captureDelayed, .captureAndCopy, .captureLastRegion].contains($0)
         }) {
             declarations.append(.init(id: .screenRecording, reason: "截图、滚动长截图和录屏"))
         }
@@ -24,7 +25,8 @@ enum CapturePermissionRequirements {
     static func permissions(for action: ActionKind, recordingOptions: UserDefaults = .standard) -> Set<HostPermissionID>
     {
         switch action {
-        case .captureRegion, .captureWindow, .captureScreen, .captureScrolling: return [.screenRecording]
+        case .captureRegion, .captureWindow, .captureScreen, .captureScrolling,
+             .captureDelayed, .captureAndCopy, .captureLastRegion: return [.screenRecording]
         case .captureRecording:
             var result: Set<HostPermissionID> = [.screenRecording]
             if recordingOptions.bool(forKey: "capture.camera") { result.insert(.camera) }

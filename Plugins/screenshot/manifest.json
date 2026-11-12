@@ -2,11 +2,11 @@
   "schemaVersion": 2,
   "id": "com.tietiezhi.screenshot",
   "name": "截图",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
   "author": "tietiezhi-1216",
-  "repository": "https://github.com/tietiezhi-1216/tietiezhi-tools",
-  "minimumHostVersion": "0.5.0",
+  "repository": "https://github.com/tietiezhi-1216/untitled",
+  "minimumHostVersion": "0.9.0",
   "actions": [
     "captureRegion",
     "captureWindow",
@@ -15,13 +15,29 @@
     "captureRecording",
     "pinClipboard",
     "togglePins",
-    "captureHistory"
+    "captureHistory",
+    "captureDelayed",
+    "captureAndCopy",
+    "captureLastRegion",
+    "restorePin",
+    "cyclePinGroup",
+    "closePins",
+    "hideOtherPins",
+    "togglePinClickThrough",
+    "pinFiles",
+    "toggleCaptureHotKeys"
   ],
   "templates": [
     {
       "id": "region",
       "title": "区域截图",
-      "action": "captureRegion"
+      "action": "captureRegion",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 18,
+        "modifiers": 4096,
+        "key": "1"
+      }
     },
     {
       "id": "window",
@@ -46,7 +62,13 @@
     {
       "id": "pin",
       "title": "剪贴板贴图",
-      "action": "pinClipboard"
+      "action": "pinClipboard",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 19,
+        "modifiers": 4096,
+        "key": "2"
+      }
     },
     {
       "id": "toggle-pins",
@@ -57,6 +79,80 @@
       "id": "history",
       "title": "打开截图历史",
       "action": "captureHistory"
+    },
+    {
+      "id": "delayed",
+      "title": "延时截图",
+      "action": "captureDelayed",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 18,
+        "modifiers": 2048,
+        "key": "1"
+      }
+    },
+    {
+      "id": "copy",
+      "title": "截图并复制",
+      "action": "captureAndCopy",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 18,
+        "modifiers": 6144,
+        "key": "1"
+      }
+    },
+    {
+      "id": "repeat-region",
+      "title": "重复上次区域",
+      "action": "captureLastRegion"
+    },
+    {
+      "id": "restore-pin",
+      "title": "恢复贴图",
+      "action": "restorePin",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 20,
+        "modifiers": 4096,
+        "key": "3"
+      }
+    },
+    {
+      "id": "cycle-group",
+      "title": "切换贴图组",
+      "action": "cyclePinGroup",
+      "installByDefault": true,
+      "defaultHotKey": {
+        "keyCode": 50,
+        "modifiers": 4096,
+        "key": "`"
+      }
+    },
+    {
+      "id": "close-pins",
+      "title": "关闭本组贴图",
+      "action": "closePins"
+    },
+    {
+      "id": "hide-other-pins",
+      "title": "隐藏其他贴图",
+      "action": "hideOtherPins"
+    },
+    {
+      "id": "click-through",
+      "title": "鼠标穿透",
+      "action": "togglePinClickThrough"
+    },
+    {
+      "id": "pin-files",
+      "title": "文件贴图",
+      "action": "pinFiles"
+    },
+    {
+      "id": "toggle-hotkeys",
+      "title": "暂停或恢复截图快捷键",
+      "action": "toggleCaptureHotKeys"
     }
   ],
   "ui": {
@@ -121,6 +217,21 @@
               "id": "screen",
               "kind": "button",
               "command": "capture.screen"
+            },
+            {
+              "id": "delay",
+              "kind": "button",
+              "command": "capture.delayed"
+            },
+            {
+              "id": "copy",
+              "kind": "button",
+              "command": "capture.copy"
+            },
+            {
+              "id": "repeat",
+              "kind": "button",
+              "command": "capture.repeatRegion"
             }
           ]
         },
@@ -150,10 +261,52 @@
       ],
       "toolbar.trailing": [
         {
-          "id": "pin",
-          "kind": "button",
-          "command": "capture.pinClipboard",
-          "title": "贴图"
+          "id": "pinsMenu",
+          "kind": "menu",
+          "title": "贴图",
+          "symbol": "pin",
+          "items": [
+            {
+              "id": "pinMenu.pinClipboard",
+              "kind": "button",
+              "command": "capture.pinClipboard"
+            },
+            {
+              "id": "pinMenu.restorePin",
+              "kind": "button",
+              "command": "capture.restorePin"
+            },
+            {
+              "id": "pinMenu.pinFiles",
+              "kind": "button",
+              "command": "capture.pinFiles"
+            },
+            {
+              "id": "pinMenu.cycleGroup",
+              "kind": "button",
+              "command": "capture.cycleGroup"
+            },
+            {
+              "id": "pinMenu.togglePins",
+              "kind": "button",
+              "command": "capture.togglePins"
+            },
+            {
+              "id": "pinMenu.closePins",
+              "kind": "button",
+              "command": "capture.closePins"
+            },
+            {
+              "id": "pinMenu.hideOtherPins",
+              "kind": "button",
+              "command": "capture.hideOtherPins"
+            },
+            {
+              "id": "pinMenu.clickThrough",
+              "kind": "button",
+              "command": "capture.clickThrough"
+            }
+          ]
         },
         {
           "id": "import",
@@ -168,6 +321,7 @@
           "kind": "tabs",
           "panels": [
             "history",
+            "pins",
             "shortcuts"
           ]
         }
@@ -243,6 +397,11 @@
         "component": "capture.history"
       },
       {
+        "id": "pins",
+        "title": "贴图",
+        "component": "capture.pins"
+      },
+      {
         "id": "shortcuts",
         "title": "快捷键",
         "slots": {
@@ -251,9 +410,21 @@
               "id": "shortcut.commandHeading",
               "kind": "component",
               "component": "host.commandHeading"
+            },
+            {
+              "id": "shortcut.pause",
+              "kind": "button",
+              "command": "capture.toggleHotKeys",
+              "style": "plain"
             }
           ],
           "toolbar.trailing": [
+            {
+              "id": "shortcut.restore",
+              "kind": "button",
+              "command": "host.restoreDefaultCommands",
+              "style": "plain"
+            },
             {
               "id": "shortcut.addCommand",
               "kind": "component",
@@ -280,7 +451,7 @@
         "id": "preferences",
         "title": "截图设置",
         "component": "capture.preferences",
-        "width": 680,
+        "width": 720,
         "height": 600
       }
     ]

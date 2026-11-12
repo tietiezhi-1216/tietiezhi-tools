@@ -20,6 +20,9 @@ struct HostPluginUIProvider: PluginUIProvider {
         registry.component("host.commandStatus") { _ in
             AnyView(Text("关闭主窗口后快捷键仍然有效，退出应用后停止。").font(.caption).foregroundStyle(.secondary))
         }
+        registry.command("host.restoreDefaultCommands", presentation: { _ in .init(title: "恢复默认快捷键", symbol: "arrow.counterclockwise") }) { context in
+            try context.store.restoreDefaultCommands(pluginID: context.pluginID)
+        }
         registry.command("host.openPlugin", presentation: { _ in .init(title: "打开插件", symbol: "macwindow") }) {
             context in
             context.store.requestedPluginID = context.pluginID

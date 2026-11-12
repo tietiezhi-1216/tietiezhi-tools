@@ -77,6 +77,24 @@ struct CaptureTests {
         }
     }
 
+    @Test func reverseCropTrimsOnlyAfterReturningAlongTheCaptureAxis() throws {
+        for axis in StitchAxis.allCases {
+            let source = try pattern(width: axis == .vertical ? 180 : 900, height: axis == .vertical ? 900 : 180)
+            func crop(_ position: Int) -> CGImage {
+                source.cropping(to: axis == .vertical ? CGRect(x: 0, y: position, width: 180, height: 300) : CGRect(x: position, y: 0, width: 300, height: 180))!
+            }
+            for start in [0, 260] {
+                let next = start == 0 ? 130 : 130, end = start == 0 ? 260 : 0
+                var stitcher = ImageStitcher(image: crop(start), axis: axis)
+                #expect(try stitcher.append(crop(next), trimOnReverse: true))
+                #expect(try stitcher.append(crop(end), trimOnReverse: true))
+                #expect(try stitcher.append(crop(next), trimOnReverse: true))
+                #expect(axis == .vertical ? stitcher.image.height == 430 : stitcher.image.width == 430)
+                #expect(stitcher.viewport.width == CGFloat(crop(next).width))
+            }
+        }
+    }
+
     @Test func largeRetinaFramesKeepExactSeams() throws {
         let source = try pattern(width: 720, height: 1400)
         let first = source.cropping(to: CGRect(x: 0, y: 0, width: 720, height: 600))!
@@ -117,14 +135,15 @@ struct CaptureTests {
         #expect(PDFDocument(url: pdf)?.string?.contains("Capture 123") == true)
     }
 
-    @Test @MainActor func screenshotPluginInstallsWithoutBindingKeysAndPersistsHistory() throws {
+    @Test @MainActor func screenshotPluginInstallsPixPinDefaultsAndPersistsHistory() throws {
         let directory = try temporary()
         defer { try? FileManager.default.removeItem(at: directory) }
         let manifest = try JSONDecoder().decode(PluginManifest.self, from: Data(contentsOf: URL(fileURLWithPath: "Plugins/screenshot/manifest.json")))
         try manifest.validate()
         let store = PluginStore(directory: directory.appendingPathComponent("Plugins"), captureDirectory: directory.appendingPathComponent("Images"))
         try store.installManifest(manifest)
-        #expect(store.installed[0].commands.isEmpty)
+        #expect(store.installed[0].commands.count == 6)
+        #expect(store.installed[0].commands.first { $0.action == .captureRegion }?.hotKey?.display == "⌃1")
         #expect(store.installed[0].manifest.hasCaptureCapability)
         let command = PluginCommand(action: .captureRegion)
         try store.saveCommand(command, pluginID: manifest.id)

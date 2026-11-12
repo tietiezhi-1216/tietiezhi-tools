@@ -10,14 +10,14 @@ import AppKit
                 status: { CGPreflightScreenCaptureAccess() ? .authorized : .notGranted },
                 request: { _ = CGRequestScreenCaptureAccess() }),
             make(
-                .accessibility, "辅助功能", "用于自动滚动等跨应用控制。", "accessibility", "Accessibility",
+                .accessibility, "辅助功能", "用于自动滚动及经你允许的跨 Mac 键鼠控制。", "accessibility", "Accessibility",
                 status: { AXIsProcessTrusted() ? .authorized : .notGranted },
                 request: {
                     _ = AXIsProcessTrustedWithOptions(
                         [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
                 }),
             make(
-                .inputMonitoring, "输入监控", "用于显示按键等键盘监听功能。", "keyboard", "ListenEvent",
+                .inputMonitoring, "输入监控", "用于按键显示，以及开启键鼠共享时的输入监听。", "keyboard", "ListenEvent",
                 status: { CGPreflightListenEventAccess() ? .authorized : .notGranted },
                 request: { _ = CGRequestListenEventAccess() }),
             make(
@@ -29,7 +29,7 @@ import AppKit
                     }
                 }),
             make(
-                .microphone, "麦克风", "用于录制麦克风声音。", "mic", "Microphone",
+                .microphone, "麦克风", "用于录屏旁白，以及经你允许、对端应用使用时的实体麦克风同步。", "mic", "Microphone",
                 status: { mediaStatus(.audio) },
                 request: {
                     if AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {

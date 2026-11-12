@@ -1,8 +1,12 @@
 # 插件开发协议 v2
 
-所有插件源码放在本仓库的 `Plugins/<plugin>/`，通过同一仓库的 GitHub Releases 发布 ZIP，首页商店读取 `Plugins/catalog.json` 并核对 SHA-256。包根目录仅允许 `manifest.json`、`README.md`、`LICENSE`。
+本仓库接收各种用途的插件，清单放在 `Plugins/<plugin>/`；插件也可以有独立源码仓库与 GitHub Release。首页商店读取 `Plugins/catalog.json` 并核对 SHA-256，用户也可以直接安装离线 ZIP。包根目录仅允许 `manifest.json`、`README.md`、`LICENSE`。
+
+开发流程见[项目 skill](../.agents/skills/untitled-plugin-development/SKILL.md)，共享与二次开发要求见[贡献规范](../CONTRIBUTING.md)，高权限和完全接管的实现边界见[权限规范](../docs/PERMISSIONS.md)。
 
 0.4.0 起，插件声明自己的界面布局。宿主提供槽位、组件注册、命令分发、面板路由、安装与存储；不根据插件 ID 或动作类型决定 v2 插件的页面。参考完整的[截图清单](screenshot/manifest.json)、[快捷键清单](global-shortcuts/manifest.json)及 [JSON Schema](manifest-schema.json)。
+
+每个插件都需遵循[性能规范](../docs/PERFORMANCE.md)，说明资源开销与停止后的清理；高内存或高计算负载功能需定义预算并记录可复现的基线、峰值和回收结果。不能将宿主整体占用直接当作单个插件的占用。
 
 ## 清单
 
@@ -12,13 +16,15 @@
 | `id` | 唯一标识，小写字母、数字、点和连字符 |
 | `name` / `summary` / `author` | 商店和插件信息 |
 | `version` / `minimumHostVersion` | 三段数字；v2 最低宿主为 `0.4.0` |
-| `repository` | `https://github.com/tietiezhi-1216/tietiezhi-tools` |
+| `repository` | 插件真实的 HTTPS GitHub 源码仓库；同仓库插件使用 `https://github.com/tietiezhi-1216/untitled` |
 | `actions` | 允许使用的动作能力，无重复项 |
 | `templates` | 用户添加操作时的模板，包含 `id`、`title`、`action` |
 | `permissions` | 0.5.0+ 插件显式声明所需权限；无需权限时为 `[]` |
 | `ui` | 界面协议：`version: 1`、可选 SF Symbol `icon`、`slots` 和 `panels` |
 
-支持动作：`openApplication`、`openURL`、`runShortcut`、`showMainWindow`、`captureRegion`、`captureWindow`、`captureScreen`、`captureScrolling`、`captureRecording`、`pinClipboard`、`togglePins`、`captureHistory`。安装、注册界面或加载清单不会执行这些动作，也不占用默认全局快捷键。
+支持动作：`openApplication`、`openURL`、`runShortcut`、`showMainWindow`、`captureRegion`、`captureWindow`、`captureScreen`、`captureScrolling`、`captureRecording`、`pinClipboard`、`togglePins`、`captureHistory`。安装、注册界面或加载清单不会执行这些动作；显式声明的默认操作会在安装时注册快捷键。
+
+0.9.0+ 另支持 `sharePeripherals`、`switchPeripheralControl`、`stopPeripheralSharing`，由独立 `SharingPluginUIProvider` 注册 `sharing.dashboard` / `sharing.status` 组件和 `sharing.toggle` / `sharing.switch` / `sharing.stop` 命令。参阅[外设共享清单](peripheral-sharing/manifest.json)与[双机使用说明](peripheral-sharing/README.md)。原生服务按插件身份惰性创建、通过自身的宿主权限客户端检查权限；安装或启用不启动共享，禁用、卸载或退出立即释放。虚拟音频驱动独立于声明式 ZIP，安装只能由本机用户明确执行。
 
 ## 通用槽位
 
@@ -137,9 +143,22 @@ try context.permissions.require([.camera])
 ## 发布
 
 ```bash
-python3 scripts/package-plugins.py --tag v0.5.0 --write-catalog
+python3 scripts/package-plugins.py --tag v0.9.0
+# 单个插件，可选独立 Release 仓库
+python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin --repository alice/my-plugin
 ```
 
-上传 `dist/plugins/*.zip` 到同名 Release，资产可下载后再更新 main 的商店目录。不要替换已发布的同版本资产；修改包时递增版本并重新生成校验值。
+脚本默认只生成本地 ZIP 和 catalog，不上传、不修改在线目录。`--plugin` 可重复使用，支持插件目录或仓库内 slug；仓库外目录必须带自己的 README 与 LICENSE。优先采用插件自己的 LICENSE，仓库内未提供时才继承根 MIT。
+
+上传 ZIP 到对应 Release，资产实际可下载后再更新 main 的商店目录。统一全量打包可追加 `--write-catalog`；局部和独立仓库打包禁止覆盖中央目录。中央目录也可人工收录独立 GitHub Release，必须核对 ID、版本及 SHA-256。不要替换已发布的同版本资产；修改清单、说明或许可导致包变化时递增插件版本并重新生成校验值。历史目录引用旧仓库名的 Release 保持原校验值，依赖 GitHub 仓库改名重定向继续下载。
 
 本地配置位于 `~/Library/Application Support/com.tietiezhi.tools/Plugins/<id>.json`。升级替换清单并保留用户操作与启停状态；禁用释放快捷键，卸载删除该插件配置。配置不会随源码发布。
+
+
+### 默认动作（宿主 0.6.0+）
+
+模板可选声明 `installByDefault: true` 和 `defaultHotKey: {"keyCode":18,"modifiers":4096,"key":"1"}`。键码使用 macOS 虚拟键码，修饰键使用 Carbon 位掩码；默认全局按键必须包含 ⌘、⌥ 或 ⌃。默认动作不能要求用户先填写目标。同一清单的默认组合键不能重复，声明这些字段时请设置 `minimumHostVersion` 至少为 `0.6.0`。
+
+宿主安装或升级时按模板 ID 初始化一次；已编辑、清空、停用或删除的默认操作在后续升级中保持原样。旧配置会按动作匹配到模板，保留原操作 ID。冲突时不会覆盖其他操作，新动作不绑定并显示提示。`host.restoreDefaultCommands` 命令显式恢复默认模板，保留其他自建操作。此机制对所有插件通用。
+
+截图新增组件 `capture.pins` 和命令 `capture.delayed`、`capture.copy`、`capture.repeatRegion`、`capture.restorePin`、`capture.cycleGroup`、`capture.closePins`、`capture.hideOtherPins`、`capture.clickThrough`、`capture.pinFiles`、`capture.toggleHotKeys`。它们仍由清单选择槽位，主应用不指定插件的面板布局。

@@ -90,8 +90,9 @@ struct PluginDetailView: View {
             "运行 macOS 快捷指令"
         case .showMainWindow:
             "将工具箱主窗口带到前台"
-        case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
-            .pinClipboard, .togglePins, .captureHistory:
+        case .sharePeripherals, .switchPeripheralControl, .stopPeripheralSharing:
+            "已配对 Mac 的外设共享操作"
+        default:
             "全局截图操作"
         }
     }

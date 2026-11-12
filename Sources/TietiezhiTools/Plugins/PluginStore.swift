@@ -10,11 +10,34 @@ final class PluginStore: ObservableObject {
     @Published private(set) var isInstalling = false
     @Published private(set) var catalogError: String?
     @Published private(set) var hotKeyErrors: [UUID: String] = [:]
+    @Published private(set) var captureHotKeysPaused = false
     @Published var errorMessage: String?
     @Published var requestedPluginID: String?
     var showMainWindow: () -> Void = {}
     private let captureDirectory: URL?
     private var captureController: ScreenshotController?
+    private var sharingControllers: [String: PeripheralSharingController] = [:]
+    #if DEBUG
+    private var sharingAcceptance: SharingAcceptance?
+    func startSharingAcceptance(at directory: URL) throws {
+        guard sharingAcceptance == nil else { return }
+        sharingAcceptance = try SharingAcceptance(store: self, directory: directory)
+    }
+    #endif
+    func peripheralSharing(for pluginID: String) -> PeripheralSharingController {
+        if let controller = sharingControllers[pluginID] { return controller }
+        let controller = PeripheralSharingController()
+        controller.isAllowed = { [weak self] in
+            self?.installed.contains(where: { $0.id == pluginID && $0.isEnabled && $0.manifest.actions.contains(.sharePeripherals) }) == true
+        }
+        controller.requirePermissions = { [weak self] ids in
+            guard let self else { throw PluginError.invalid("宿主已关闭。") }
+            try self.permissionClient(for: pluginID).require(ids)
+        }
+        controller.reportError = { [weak self] in self?.handleExecutionError($0) }
+        sharingControllers[pluginID] = controller
+        return controller
+    }
     let uiRegistry: PluginUIRegistry
     let permissions: HostPermissionCenter
     var screenshots: ScreenshotController {
@@ -26,12 +49,25 @@ final class PluginStore: ObservableObject {
             self?.installed.contains(where: { $0.isEnabled && $0.manifest.actions.contains(where: \.isScreenshotAction) }) == true
         }
         captureController = controller
+        if let plugin = installed.first(where: { $0.isEnabled && $0.manifest.hasCaptureCapability }) {
+            controller.configureGlobalMouse(permissions: permissionClient(for: plugin.id), allowed: { [weak self] in self?.captureHotKeysPaused == false && !HotKeyRecordingSession.isRecording })
+        }
+        controller.pinManager.activate()
         return controller
     }
-    func prepareForQuit() async { await captureController?.prepareForQuit() }
+    func prepareForQuit() async -> Bool {
+        #if DEBUG
+        sharingAcceptance?.stop(); sharingAcceptance = nil
+        #endif
+        for controller in sharingControllers.values { controller.stop() }
+        let ready = await captureController?.prepareForQuit() ?? true
+        if !ready { reloadHotKeys() }
+        return ready
+    }
 
     private let directory: URL
     private let hotKeys = HotKeyManager()
+    private var recordingObserver: AnyCancellable?
 
     init(directory: URL? = nil, captureDirectory: URL? = nil, uiRegistry: PluginUIRegistry? = nil, permissions: HostPermissionCenter? = nil) {
         self.captureDirectory = captureDirectory
@@ -62,6 +98,9 @@ final class PluginStore: ObservableObject {
             }
             reloadHotKeys()
         } catch { errorMessage = "无法读取插件目录：\(error.localizedDescription)" }
+        recordingObserver = NotificationCenter.default.publisher(for: HotKeyRecordingSession.changed).sink { [weak self] _ in
+            MainActor.assumeIsolated { self?.reloadHotKeys() }
+        }
     }
 
     func refreshCatalog() async {
@@ -90,8 +129,9 @@ final class PluginStore: ObservableObject {
             let manifest = try await Task.detached {
                 try PluginArchive.read(temporary, expectedSHA256: entry.sha256)
             }.value
-            guard manifest.id == entry.id, manifest.version == entry.version,
-                  manifest.repository == HostInfo.repository else { throw PluginError.invalid("插件包与商店记录不一致。") }
+            guard manifest.id == entry.id, manifest.version == entry.version else {
+                throw PluginError.invalid("插件包与商店记录不一致。")
+            }
             try installManifest(manifest)
         } catch { errorMessage = "安装失败：\(error.localizedDescription)" }
     }
@@ -106,9 +146,6 @@ final class PluginStore: ObservableObject {
         }
         do {
             let manifest = try await Task.detached { try PluginArchive.read(url) }.value
-            guard manifest.repository == HostInfo.repository else {
-                throw PluginError.invalid("当前只支持统一插件仓库中的插件包。")
-            }
             try installManifest(manifest)
         } catch { errorMessage = "安装失败：\(error.localizedDescription)" }
     }
@@ -124,10 +161,34 @@ final class PluginStore: ObservableObject {
             guard record.commands.allSatisfy({ manifest.actions.contains($0.action) }) else {
                 throw PluginError.invalid("新版本不再支持部分已有操作，请先移除这些操作。")
             }
+            sharingControllers[manifest.id]?.stop(reason: "插件升级后请手动重新启动共享。")
             record.manifest = manifest
+            let conflicts = record.initializeDefaultCommands(occupiedHotKeys: occupiedHotKeys(excluding: manifest.id))
             try save(record)
+            reportDefaultConflicts(conflicts)
         } else {
-            try save(InstalledPlugin(manifest: manifest, commands: []))
+            var record = InstalledPlugin(manifest: manifest, commands: [])
+            let conflicts = record.initializeDefaultCommands(occupiedHotKeys: occupiedHotKeys(excluding: manifest.id))
+            try save(record)
+            reportDefaultConflicts(conflicts)
+        }
+    }
+
+    func restoreDefaultCommands(pluginID: String) throws {
+        guard var record = installed.first(where: { $0.id == pluginID }) else { throw PluginError.invalid("插件已卸载。") }
+        let conflicts = record.initializeDefaultCommands(occupiedHotKeys: occupiedHotKeys(excluding: pluginID), restoring: true)
+        try save(record)
+        reportDefaultConflicts(conflicts)
+    }
+
+    private func occupiedHotKeys(excluding pluginID: String) -> Set<String> {
+        Set(installed.filter { $0.id != pluginID && $0.isEnabled }.flatMap(\.commands)
+            .filter(\.isEnabled).compactMap { $0.hotKey?.identity })
+    }
+
+    private func reportDefaultConflicts(_ titles: [String]) {
+        if !titles.isEmpty {
+            errorMessage = "这些操作的默认快捷键已被占用，已保留原绑定；可在快捷键页重新设置：" + titles.joined(separator: "、")
         }
     }
 
@@ -135,9 +196,10 @@ final class PluginStore: ObservableObject {
         guard var record = installed.first(where: { $0.id == pluginID }) else { return }
         record.isEnabled = enabled
         do { try save(record) } catch { errorMessage = error.localizedDescription }
+        if !enabled { sharingControllers[pluginID]?.stop() }
         if record.manifest.hasCaptureCapability {
             if !enabled { screenshots.deactivate() }
-            else { captureController?.objectWillChange.send() }
+            else { captureController?.pinManager.activate(); captureController?.objectWillChange.send() }
         }
     }
 
@@ -171,6 +233,7 @@ final class PluginStore: ObservableObject {
         guard installed.contains(where: { $0.id == pluginID }) else { return }
         do {
             if installed.first(where: { $0.id == pluginID })?.manifest.hasCaptureCapability == true { screenshots.deactivate() }
+            sharingControllers.removeValue(forKey: pluginID)?.stop()
             try FileManager.default.removeItem(at: directory.appendingPathComponent(pluginID + ".json"))
             installed.removeAll { $0.id == pluginID }
             reloadHotKeys()
@@ -181,17 +244,38 @@ final class PluginStore: ObservableObject {
         guard let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled, command.isEnabled,
               plugin.commands.contains(command), plugin.manifest.actions.contains(command.action) else { return }
         do {
-            try await ActionExecutor.execute(command, showMainWindow: showMainWindow) { [self] action in
+            try await ActionExecutor.execute(command, showMainWindow: showMainWindow, peripheralAction: { [self] action in
+                try performPeripheralAction(action, pluginID: pluginID)
+            }) { [self] action in
                 try await performScreenshot(action, pluginID: pluginID)
             }
         }
         catch { handleExecutionError(error) }
     }
 
+    func performPeripheralAction(_ action: ActionKind, pluginID: String) throws {
+        guard let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled,
+              plugin.manifest.actions.contains(action), plugin.manifest.actions.contains(.sharePeripherals) else {
+            throw PluginError.invalid("请先启用并授权外设共享插件。")
+        }
+        let controller = peripheralSharing(for: pluginID)
+        switch action {
+        case .sharePeripherals: if controller.isRunning { controller.stop() } else { try controller.start() }
+        case .switchPeripheralControl: controller.toggleControl()
+        case .stopPeripheralSharing: controller.stop()
+        default: throw PluginError.invalid("不支持的外设共享操作。")
+        }
+    }
+
     func performScreenshot(_ action: ActionKind, pluginID: String) async throws {
         guard action.isScreenshotAction,
               let plugin = installed.first(where: { $0.id == pluginID }), plugin.isEnabled,
               plugin.manifest.actions.contains(action) else { throw PluginError.invalid("请先启用截图插件。") }
+        if action == .toggleCaptureHotKeys {
+            captureHotKeysPaused.toggle()
+            reloadHotKeys()
+            return
+        }
         let client = permissionClient(for: pluginID)
         if !(action == .captureRecording && screenshots.isRecording) {
             try client.require(CapturePermissionRequirements.permissions(for: action))
@@ -229,11 +313,18 @@ final class PluginStore: ObservableObject {
     }
 
     private func reloadHotKeys() {
+        if let plugin = installed.first(where: { $0.isEnabled && $0.manifest.hasCaptureCapability }) {
+            if let controller = captureController {
+                controller.configureGlobalMouse(permissions: permissionClient(for: plugin.id), allowed: { [weak self] in self?.captureHotKeysPaused == false && !HotKeyRecordingSession.isRecording })
+            } else if UserDefaults.standard.bool(forKey: "capture.mouse.enabled") { _ = screenshots }
+        } else { captureController?.globalMouse.stop() }
         hotKeys.clear()
         hotKeyErrors = [:]
+        guard !HotKeyRecordingSession.isRecording else { return }
         var identities = Set<String>()
         for plugin in installed where plugin.isEnabled {
             for command in plugin.commands where command.isEnabled {
+                if captureHotKeysPaused, plugin.manifest.hasCaptureCapability, command.action != .toggleCaptureHotKeys { continue }
                 guard let hotKey = command.hotKey else { continue }
                 do {
                     try command.validate(allowedActions: plugin.manifest.actions)

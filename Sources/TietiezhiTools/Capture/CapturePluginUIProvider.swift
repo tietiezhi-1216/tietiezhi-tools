@@ -11,8 +11,11 @@ struct CapturePluginUIProvider: PluginUIProvider {
         registry.component("capture.history", requiredActions: [.captureHistory]) { context in
             AnyView(CaptureHistoryView(pluginID: context.pluginID, capture: context.store.screenshots))
         }
-        registry.component("capture.preferences", requiredActions: [.captureRegion]) { _ in
-            AnyView(ScreenshotSettingsView())
+        registry.component("capture.pins", requiredActions: [.pinClipboard]) { context in
+            AnyView(CapturePinsView(manager: context.store.screenshots.pinManager))
+        }
+        registry.component("capture.preferences", requiredActions: [.captureRegion]) { context in
+            AnyView(ScreenshotSettingsView(mouse: context.store.screenshots.globalMouse, capture: context.store.screenshots))
         }
         registry.component("capture.status", requiredActions: [.captureHistory]) { context in
             AnyView(CaptureStatusView(capture: context.store.screenshots))
@@ -22,6 +25,10 @@ struct CapturePluginUIProvider: PluginUIProvider {
             ("scrollVertical", .captureScrolling), ("scrollHorizontal", .captureScrolling),
             ("record", .captureRecording), ("pinClipboard", .pinClipboard),
             ("togglePins", .togglePins), ("history", .captureHistory),
+            ("delayed", .captureDelayed), ("copy", .captureAndCopy), ("repeatRegion", .captureLastRegion),
+            ("restorePin", .restorePin), ("closePins", .closePins), ("hideOtherPins", .hideOtherPins),
+            ("clickThrough", .togglePinClickThrough), ("cycleGroup", .cyclePinGroup), ("pinFiles", .pinFiles),
+            ("toggleHotKeys", .toggleCaptureHotKeys),
         ]
         for (name, action) in actions {
             registry.command(
@@ -33,7 +40,8 @@ struct CapturePluginUIProvider: PluginUIProvider {
                         case "scrollVertical": "纵向长截图"
                         case "scrollHorizontal": "横向长截图"
                         case "record": capture.isRecording ? "停止录屏" : "录屏"
-                        case "pinClipboard": "贴图"
+                        case "pinClipboard": "剪贴板贴图"
+                        case "toggleHotKeys": context.store.captureHotKeysPaused ? "恢复截图快捷键" : "暂停截图快捷键"
                         default: action.title
                         }
                     return .init(

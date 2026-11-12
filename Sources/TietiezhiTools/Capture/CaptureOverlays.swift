@@ -9,12 +9,15 @@ import SwiftUI
     private var panel: NSPanel?
     var windowID: CGWindowID? { panel.map { CGWindowID($0.windowNumber) } }
 
-    func start(in selection: CaptureSelection, permissions: PluginPermissionClient) async throws {
+    func start(in selection: CaptureSelection, permissions: PluginPermissionClient, deviceID: String? = nil, secondary: Bool = false) async throws {
         guard selection.rect.width >= 240, selection.rect.height >= 180 else {
             throw PluginError.invalid("摄像头画中画需要至少 240 × 180 的录屏选区。")
         }
         try permissions.require([.camera])
-        guard let device = AVCaptureDevice.default(for: .video) else { throw PluginError.invalid("未检测到摄像头，可关闭画中画后录屏。") }
+        let defaults = UserDefaults.standard
+        let requested = deviceID ?? defaults.string(forKey: "capture.cameraDevice") ?? ""
+        let devices = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .external], mediaType: .video, position: .unspecified).devices
+        guard let device = devices.first(where: { $0.uniqueID == requested }) ?? (deviceID == nil ? AVCaptureDevice.default(for: .video) : nil) else { throw PluginError.invalid("未检测到摄像头，可关闭画中画后录屏。") }
         let input = try AVCaptureDeviceInput(device: device)
         box.session.beginConfiguration()
         box.session.sessionPreset = .medium
@@ -24,20 +27,28 @@ import SwiftUI
         }
         box.session.addInput(input); box.session.commitConfiguration()
         let width = min(300, selection.rect.width / 3)
-        let height = width * 0.75
+        let circle = defaults.bool(forKey: "capture.cameraCircle")
+        let height = circle ? width : width * 0.75
         let panel = NSPanel(contentRect: CGRect(origin: .zero, size: CGSize(width: width, height: height)),
                             styleMask: [.borderless, .resizable, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.isReleasedWhenClosed = false; panel.level = .floating
         panel.isMovableByWindowBackground = true
-        panel.aspectRatio = CGSize(width: 4, height: 3)
+        panel.aspectRatio = CGSize(width: circle ? 1 : 4, height: circle ? 1 : 3)
+        panel.isOpaque = false; panel.backgroundColor = .clear
         let view = CameraPreviewView()
         view.wantsLayer = true
         let preview = AVCaptureVideoPreviewLayer(session: box.session)
         preview.videoGravity = .resizeAspectFill
         view.layer = preview
+        view.circular = circle
+        preview.masksToBounds = true
+        if let connection = preview.connection, connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = defaults.object(forKey: "capture.cameraMirror") as? Bool ?? true
+        }
         panel.contentView = view
         let frame = Self.screenFrame(selection)
-        panel.setFrameOrigin(CGPoint(x: frame.minX + selection.rect.maxX - width - 12,
+        panel.setFrameOrigin(CGPoint(x: secondary ? frame.minX + selection.rect.minX + 12 : frame.minX + selection.rect.maxX - width - 12,
                                      y: frame.maxY - selection.rect.maxY + 12))
         self.panel = panel
         panel.orderFrontRegardless()
@@ -57,6 +68,8 @@ import SwiftUI
 }
 
 private final class CameraPreviewView: NSView {
+    var circular = false
+    override func layout() { super.layout(); layer?.cornerRadius = circular ? min(bounds.width, bounds.height) / 2 : 12 }
     override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
 }
 

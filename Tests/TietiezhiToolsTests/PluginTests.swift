@@ -8,6 +8,56 @@ import Testing
 
 @Suite(.serialized)
 struct PluginTests {
+    @Test @MainActor func importIndependentAndPreRenameArchives() async throws {
+        _ = NSApplication.shared
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = PluginStore(directory: directory.appendingPathComponent("Installed"))
+        let repositories = [
+            "https://github.com/alice/independent-plugin",
+            "https://github.com/tietiezhi-1216/tietiezhi-tools",
+        ]
+        for (index, repository) in repositories.enumerated() {
+            let manifest = PluginManifest(
+                schemaVersion: 1, id: "dev.alice.import-\(index)", name: "Independent plugin",
+                version: "1.0.0", summary: "Independent distribution", author: "Alice",
+                repository: URL(string: repository)!, minimumHostVersion: "0.2.0",
+                actions: [.showMainWindow], templates: [])
+            let source = directory.appendingPathComponent("Package-\(index)", isDirectory: true)
+            try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+            try JSONEncoder().encode(manifest).write(to: source.appendingPathComponent("manifest.json"))
+            let archive = try zip(source, files: ["manifest.json"])
+            await store.importPackage(archive)
+            #expect(store.errorMessage == nil)
+            #expect(store.installed.first { $0.id == manifest.id }?.manifest == manifest)
+        }
+        let reloaded = PluginStore(directory: directory.appendingPathComponent("Installed"))
+        #expect(reloaded.installed.count == 2)
+    }
+
+    @Test func catalogAcceptsIndependentReleasesAndRejectsOtherOrigins() throws {
+        func entry(_ address: String) -> CatalogEntry {
+            CatalogEntry(id: "dev.alice.plugin", name: "Independent plugin", version: "1.0.0",
+                         summary: "Test", author: "Alice", downloadURL: URL(string: address)!,
+                         sha256: String(repeating: "a", count: 64))
+        }
+        for repository in ["alice/independent-plugin", "tietiezhi-1216/untitled", "tietiezhi-1216/tietiezhi-tools"] {
+            try entry("https://github.com/\(repository)/releases/download/v1.0.0/plugin.zip").validate()
+        }
+        for address in [
+            "http://github.com/alice/plugin/releases/download/v1/plugin.zip",
+            "https://github.com.evil.example/alice/plugin/releases/download/v1/plugin.zip",
+            "https://user:secret@github.com/alice/plugin/releases/download/v1/plugin.zip",
+            "https://github.com:8443/alice/plugin/releases/download/v1/plugin.zip",
+            "https://github.com/alice/plugin/archive/refs/heads/main.zip",
+            "https://github.com/alice/plugin/releases/download/v1/plugin.zip?unexpected=1",
+            "https://github.com/alice/plugin/releases/download/v1/plugin.zip#fragment",
+            "https://github.com/alice/plugin/releases/download/v1/plugin.sh",
+        ] {
+            #expect(throws: PluginError.self) { try entry(address).validate() }
+        }
+    }
+
     @Test func archiveRoundTripAndChecksum() throws {
         let directory = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

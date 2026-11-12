@@ -8,7 +8,7 @@ import Testing
 @Suite(.serialized) struct PluginInterfaceTests {
     @Test @MainActor func officialPluginsDeclareTheirOwnLayout() throws {
         let registry = PluginComposition.makeUIRegistry()
-        for name in ["global-shortcuts", "screenshot"] {
+        for name in ["global-shortcuts", "screenshot", "peripheral-sharing"] {
             let data = try Data(contentsOf: URL(fileURLWithPath: "Plugins/\(name)/manifest.json"))
             let manifest = try JSONDecoder().decode(PluginManifest.self, from: data)
             try manifest.validate()
@@ -54,6 +54,9 @@ import Testing
         let data = try Data(contentsOf: URL(fileURLWithPath: "Plugins/screenshot/manifest.json"))
         var json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
         json["schemaVersion"] = 1; json["minimumHostVersion"] = "0.3.0"; json.removeValue(forKey: "ui"); json.removeValue(forKey: "permissions")
+        json["templates"] = (json["templates"] as? [[String: Any]])?.map { template in
+            var old = template; old.removeValue(forKey: "defaultHotKey"); old.removeValue(forKey: "installByDefault"); return old
+        }
         let legacy = try JSONDecoder().decode(PluginManifest.self, from: JSONSerialization.data(withJSONObject: json))
         let registry = PluginComposition.makeUIRegistry()
         try legacy.validate()

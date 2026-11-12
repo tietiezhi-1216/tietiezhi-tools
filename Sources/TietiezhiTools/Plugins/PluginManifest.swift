@@ -1,9 +1,35 @@
 import Foundation
 
 enum HostInfo {
-    static let version = "0.5.3"
-    static let repository = URL(string: "https://github.com/tietiezhi-1216/tietiezhi-tools")!
-    static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/tietiezhi-tools/main/Plugins/catalog.json")!
+    static let name = "Untitled"
+    static let version = "0.9.0"
+    static let repository = URL(string: "https://github.com/tietiezhi-1216/untitled")!
+    static let catalog = URL(string: "https://raw.githubusercontent.com/tietiezhi-1216/untitled/main/Plugins/catalog.json")!
+}
+
+/// A plugin may keep its own source repository and release independently of the host.
+private enum GitHubPluginSource {
+    static func hasValidOrigin(_ url: URL) -> Bool {
+        url.scheme == "https" && url.host == "github.com" && url.port == nil &&
+            url.user == nil && url.password == nil && url.query == nil && url.fragment == nil
+    }
+
+    static func isRepository(_ url: URL) -> Bool {
+        hasValidOrigin(url) && url.path.range(
+            of: #"^/[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*/?$"#,
+            options: .regularExpression) != nil
+    }
+
+    static func isReleaseArchive(_ url: URL) -> Bool {
+        let parts = url.pathComponents
+        guard hasValidOrigin(url), parts.count == 7,
+              parts[3] == "releases", parts[4] == "download",
+              !parts.contains("."), !parts.contains(".."), url.pathExtension == "zip"
+        else { return false }
+        return [parts[1], parts[2]].allSatisfy {
+            $0.range(of: #"^[A-Za-z0-9][A-Za-z0-9._-]*$"#, options: .regularExpression) != nil
+        }
+    }
 }
 
 enum PluginError: LocalizedError {
@@ -56,13 +82,26 @@ struct PluginManifest: Codable, Equatable, Sendable, Identifiable {
               summary.count <= 1000, !author.isEmpty,
               Version(version) != nil, let minimum = Version(minimumHostVersion),
               minimum <= Version(HostInfo.version)! else { throw PluginError.invalid("插件信息无效，或需要更高版本的主程序。") }
-        guard repository.scheme == "https", repository.host == "github.com",
-              repository.user == nil, repository.password == nil,
-              repository.pathComponents.count == 3 else { throw PluginError.invalid("插件源码必须来自 GitHub 仓库。") }
+        guard GitHubPluginSource.isRepository(repository) else {
+            throw PluginError.invalid("插件源码地址必须是 HTTPS GitHub 仓库地址。")
+        }
         guard !actions.isEmpty, Set(actions).count == actions.count,
               templates.count <= 100, Set(templates.map(\.id)).count == templates.count,
               templates.allSatisfy({ !$0.id.isEmpty && !$0.title.isEmpty && $0.title.count <= 100 && actions.contains($0.action) }) else {
             throw PluginError.invalid("插件的操作声明无效。")
+        }
+        if templates.contains(where: { $0.defaultHotKey != nil || $0.installByDefault != nil }) {
+            guard minimum >= Version("0.6.0")! else { throw PluginError.invalid("默认动作声明需要 0.6.0 或更高版本宿主。") }
+        }
+        var defaultKeys = Set<String>()
+        for template in templates {
+            if let key = template.defaultHotKey {
+                try key.validate()
+                guard template.installByDefault == true, defaultKeys.insert(key.identity).inserted else {
+                    throw PluginError.invalid("默认快捷键必须属于默认动作，且不能重复。")
+                }
+            }
+            if template.installByDefault == true { try template.action.validateTarget("") }
         }
     }
 }
@@ -87,12 +126,15 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
     case openURL
     case runShortcut
     case showMainWindow
+    case sharePeripherals, switchPeripheralControl, stopPeripheralSharing
     case captureRegion, captureWindow, captureScreen, captureScrolling, captureRecording
     case pinClipboard, togglePins, captureHistory
+    case captureDelayed, captureAndCopy, captureLastRegion
+    case restorePin, closePins, hideOtherPins, togglePinClickThrough, cyclePinGroup, pinFiles, toggleCaptureHotKeys
 
     var isScreenshotAction: Bool {
         switch self {
-        case .openApplication, .openURL, .runShortcut, .showMainWindow: false
+        case .openApplication, .openURL, .runShortcut, .showMainWindow, .sharePeripherals, .switchPeripheralControl, .stopPeripheralSharing: false
         default: true
         }
     }
@@ -103,6 +145,9 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .openURL: "打开网址"
         case .runShortcut: "运行快捷指令"
         case .showMainWindow: "显示主面板"
+        case .sharePeripherals: "启动或停止外设共享"
+        case .switchPeripheralControl: "切换键鼠控制目标"
+        case .stopPeripheralSharing: "停止全部外设共享"
         case .captureRegion: "区域截图"
         case .captureWindow: "窗口截图"
         case .captureScreen: "全屏截图"
@@ -111,6 +156,16 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .pinClipboard: "剪贴板贴图"
         case .togglePins: "隐藏或显示贴图"
         case .captureHistory: "打开截图历史"
+        case .captureDelayed: "自定义 / 延时截图"
+        case .captureAndCopy: "截图并复制"
+        case .captureLastRegion: "重复上次截图区域"
+        case .restorePin: "恢复上次关闭的贴图"
+        case .closePins: "关闭所有贴图"
+        case .hideOtherPins: "隐藏或显示其他贴图"
+        case .togglePinClickThrough: "切换贴图鼠标穿透"
+        case .cyclePinGroup: "切换贴图组"
+        case .pinFiles: "文件贴图"
+        case .toggleCaptureHotKeys: "暂停或恢复截图快捷键"
         }
     }
 
@@ -120,6 +175,9 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .openURL: "link"
         case .runShortcut: "command.square"
         case .showMainWindow: "macwindow"
+        case .sharePeripherals: "network"
+        case .switchPeripheralControl: "keyboard"
+        case .stopPeripheralSharing: "stop.circle"
         case .captureRegion: "viewfinder"
         case .captureWindow: "macwindow"
         case .captureScreen: "display"
@@ -128,6 +186,16 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
         case .pinClipboard: "pin"
         case .togglePins: "eye"
         case .captureHistory: "clock"
+        case .captureDelayed: "timer"
+        case .captureAndCopy: "doc.on.clipboard"
+        case .captureLastRegion: "viewfinder.rectangular"
+        case .restorePin: "pin.circle"
+        case .closePins: "xmark.rectangle.on.rectangle"
+        case .hideOtherPins: "eye.slash"
+        case .togglePinClickThrough: "cursorarrow.rays"
+        case .cyclePinGroup: "square.stack.3d.up"
+        case .pinFiles: "photo.on.rectangle.angled"
+        case .toggleCaptureHotKeys: "keyboard"
         }
     }
 
@@ -146,8 +214,7 @@ enum ActionKind: String, Codable, CaseIterable, Sendable {
             guard !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, target.count <= 500 else {
                 throw PluginError.invalid("请输入 macOS「快捷指令」中的名称。")
             }
-        case .showMainWindow, .captureRegion, .captureWindow, .captureScreen, .captureScrolling,
-             .captureRecording, .pinClipboard, .togglePins, .captureHistory: break
+        default: break
         }
     }
 }
@@ -156,6 +223,8 @@ struct CommandTemplate: Codable, Equatable, Sendable, Identifiable {
     let id: String
     let title: String
     let action: ActionKind
+    var defaultHotKey: HotKey? = nil
+    var installByDefault: Bool? = nil
 }
 
 struct PluginCommand: Codable, Equatable, Sendable, Identifiable {
@@ -165,6 +234,7 @@ struct PluginCommand: Codable, Equatable, Sendable, Identifiable {
     var applicationBookmark: Data?
     var hotKey: HotKey?
     var isEnabled = true
+    var templateID: String? = nil
 
     // 名称由动作和目标派生；旧配置中的 title 字段由 Codable 自动忽略。
     var title: String {
@@ -187,8 +257,7 @@ struct PluginCommand: Codable, Equatable, Sendable, Identifiable {
             return "打开 \(destination)"
         case .runShortcut:
             return "运行快捷指令：\(value)"
-        case .showMainWindow, .captureRegion, .captureWindow, .captureScreen, .captureScrolling,
-             .captureRecording, .pinClipboard, .togglePins, .captureHistory:
+        default:
             return action.title
         }
     }
@@ -207,7 +276,45 @@ struct InstalledPlugin: Codable, Equatable, Sendable, Identifiable {
     var isEnabled = true
     var commands: [PluginCommand]
     var installedAt = Date()
+    var initializedDefaultTemplateIDs: [String]? = nil
     var id: String { manifest.id }
+
+    /// Upgrade defaults once; user edits, cleared bindings and deleted defaults survive later upgrades.
+    @discardableResult mutating func initializeDefaultCommands(
+        occupiedHotKeys: Set<String> = [], restoring: Bool = false
+    ) -> [String] {
+        var initialized = Set(initializedDefaultTemplateIDs ?? [])
+        var conflicts: [String] = []
+        let restoringIDs = restoring ? Set(manifest.templates.filter { $0.installByDefault == true }.map(\.id)) : []
+        for template in manifest.templates where template.installByDefault == true {
+            guard restoring || !initialized.contains(template.id) else { continue }
+            initialized.insert(template.id)
+            var index = commands.firstIndex { $0.templateID == template.id }
+            if index == nil, !restoring {
+                index = commands.firstIndex { $0.templateID == nil && $0.action == template.action }
+            }
+            if let index, !restoring {
+                commands[index].templateID = template.id
+                continue
+            }
+            var command = index.map { commands[$0] } ?? PluginCommand(action: template.action)
+            command.templateID = template.id
+            command.action = template.action
+            command.target = ""
+            command.hotKey = template.defaultHotKey
+            command.isEnabled = true
+            if let key = command.hotKey,
+               occupiedHotKeys.contains(key.identity) || commands.contains(where: {
+                   $0.id != command.id && $0.isEnabled && !($0.templateID.map { restoringIDs.contains($0) } ?? false) && $0.hotKey?.identity == key.identity
+               }) {
+                conflicts.append(command.title)
+                command.hotKey = nil
+            }
+            if let index { commands[index] = command } else { commands.append(command) }
+        }
+        initializedDefaultTemplateIDs = initialized.sorted()
+        return conflicts
+    }
 }
 
 struct PluginCatalog: Codable, Sendable {
@@ -232,10 +339,8 @@ struct CatalogEntry: Codable, Identifiable, Sendable {
     let sha256: String
 
     func validate() throws {
-        guard downloadURL.scheme == "https", downloadURL.host == "github.com",
-              downloadURL.user == nil, downloadURL.password == nil,
-              downloadURL.path.hasPrefix("/tietiezhi-1216/tietiezhi-tools/releases/download/"),
-              downloadURL.pathExtension == "zip", sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil,
+        guard GitHubPluginSource.isReleaseArchive(downloadURL),
+              sha256.range(of: #"^[a-f0-9]{64}$"#, options: .regularExpression) != nil,
               Version(version) != nil, !id.isEmpty, !name.isEmpty else {
             throw PluginError.invalid("插件下载地址或校验信息无效。")
         }

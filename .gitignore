@@ -5,3 +5,10 @@ DerivedData/
 dist/
 xcuserdata/
 *.xcuserstate
+.signing-identity
+*.p12
+*.pfx
+*.key
+*.certSigningRequest
+__pycache__/
+*.py[cod]

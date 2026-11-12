@@ -32,6 +32,7 @@ struct CommandEditor: View {
                 .onChange(of: draft.action) { _, _ in
                     draft.target = ""
                     draft.applicationBookmark = nil
+                    draft.templateID = nil
                     error = nil
                 }
 
@@ -53,8 +54,10 @@ struct CommandEditor: View {
                 case .showMainWindow:
                     Text("将主面板带到前台；窗口已关闭时会重新打开。")
                         .font(.callout).foregroundStyle(.secondary)
-                case .captureRegion, .captureWindow, .captureScreen, .captureScrolling, .captureRecording,
-                     .pinClipboard, .togglePins, .captureHistory:
+                case .sharePeripherals, .switchPeripheralControl, .stopPeripheralSharing:
+                    Text("使用外设共享插件中已配对的设备。切换控制需要两端明确开启键鼠共享；停止操作始终释放键鼠和麦克风。")
+                        .font(.callout).foregroundStyle(.secondary)
+                default:
                     Text("绑定后可在任意应用中执行此截图操作。首次截屏或录屏时需要允许屏幕录制权限。")
                         .font(.callout).foregroundStyle(.secondary)
                 }
@@ -104,8 +107,14 @@ struct CommandEditor: View {
         panel.allowsMultipleSelection = false
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
-            draft.target = url.path
-            draft.applicationBookmark = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            do {
+                let bookmark = try ActionExecutor.applicationBookmark(for: url)
+                draft.target = url.path
+                draft.applicationBookmark = bookmark
+                error = nil
+            } catch {
+                self.error = "无法保存应用位置，请重新选择：\(error.localizedDescription)"
+            }
         }
     }
 }

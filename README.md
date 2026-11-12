@@ -1,117 +1,90 @@
-# Tietiezhi Tools
+<p align="center"><img src="Resources/Brand/AppIcon.png" width="104" alt="Untitled 裂变图标"></p>
 
-一个简洁的原生 macOS 插件工具箱。**Swift 6 + SwiftUI，macOS 14+，无第三方依赖，MIT 开源。**
+# Untitled
 
-首页是插件商店；功能通过 ZIP 插件包安装。所有插件源码、商店目录和下载包统一放在[同一个 GitHub 仓库](https://github.com/tietiezhi-1216/tietiezhi-tools)中。
+**软件由你定义。**
+
+想要一个功能，就让 agent 把它做出来。把它装进自己的软件，按习惯修改，再把插件分享给其他人，让他们继续创造。
+
+Untitled 为这种开发方式提供一个原生 macOS 应用：稳定的宿主、可选择的插件、开放的源码，以及持续生长的功能。你可以从自己需要的一小部分开始，逐渐把软件变成适合自己的样子。
+
+## 按自己的需要创造
+
+- **功能自由生长**：截图、自动化或完全不同的新想法，都可以通过插件实现。
+- **自己选择安装**：插件可安装、启停、升级和卸载；支持从商店或离线 ZIP 安装。
+- **自己掌握源码**：修改实现、fork、二次开发，或只保留在自己的机器上。
+- **自由分享**：本仓库接受各种用途的插件，开发者也能用自己的仓库与 Release 独立分发。
+- **专注 macOS**：Swift 6 + SwiftUI / AppKit，运行最低 macOS 14，直接使用原生系统能力。
+
+品牌名 Untitled 表示用途由你定义。黑白「裂变」图标保留混沌、无序和不断变化的感觉。
 
 ## 使用
 
-0.5.0 将系统授权集中到「应用设置 → 权限管理」：屏幕录制、辅助功能、输入监控、摄像头和麦克风统一查询、请求和管理。列表仅显示名称、彩色状态标签和操作，信息按钮仅展示一句用途说明。插件缺少权限时通过宿主接口打开该页面，用户确认授权后再执行功能；进入插件、安装插件或开启业务选项不会请求权限。更改和撤销系统权限通过对应的 macOS 隐私设置完成。
-
-0.3.0 新增[截图插件](Plugins/screenshot/README.md)：全局截图快捷键、区域/窗口/全屏、多显示器、置顶贴图、箭头/文字/马赛克/实色遮挡等标注、横纵滚动长图、录屏与 GIF、本地 OCR/条码、系统翻译、CSV/XLSX 表格、LaTeX 公式、Word/Markdown/可搜索 PDF 文档导出。复杂图像识别可选接入自己的视觉模型，密钥保存在钥匙串，发送图片前须确认。录屏和系统翻译需要 macOS 15+，macOS 26+ 另支持本地文档结构识别。
-
-在商店安装「截图」，进入插件的「快捷键」页绑定操作。首次截图/录屏需要屏幕录制权限；导入图片、标注、OCR 和贴图可先使用。窗口关闭后，仍可用全局快捷键或菜单栏调用；退出前会结束并保存正在进行的录屏。详细功能、权限及边界见插件说明。
-
 ```bash
-git clone https://github.com/tietiezhi-1216/tietiezhi-tools.git
-cd tietiezhi-tools
+git clone https://github.com/tietiezhi-1216/untitled.git
+cd untitled
 ./scripts/run.sh
 ```
 
-源码构建需要 Xcode 26+，或包含 macOS 26+ SDK 的 Swift 6 命令行工具；运行截图等基础功能仍支持 macOS 14+。未安装命令行工具时，先运行 `xcode-select --install`。
+构建需要 macOS 26+ SDK 和 Swift 6 工具链，推荐 Xcode 26+；未安装命令行工具时先运行 `xcode-select --install`。构建结果是 `dist/debug/Untitled.app`。运行版本要求按插件区分：例如录屏、系统翻译需要 macOS 15+，本地文档结构识别需要 macOS 26+。
 
-1. 在首页“插件商店”中安装 **全局快捷键**。
-2. 在侧边栏打开插件，点击“添加操作”。
-3. 选择应用、填写网址或 macOS 快捷指令名称，也可以选择“显示主面板”。
-4. 点击录制按钮，按下自己喜欢的组合键，再保存。
+首页选择插件安装，或点击“从 ZIP 安装…”导入他人分享的包。打开插件后使用其界面、操作或快捷键。关闭主窗口后应用继续在菜单栏运行；退出会释放快捷键并结束相关任务。已安装的本地能力可离线使用，外部服务按插件自身要求工作。
 
-操作名称自动由“动作 + 目标”生成，例如“打开 Safari”“打开 example.com”“运行快捷指令：下班”，无需手动命名；更换目标时会自动更新。已有配置中的旧名称会被忽略，快捷键、操作 ID 和其他配置保持不变。
+仓库里已有几个可修改的示例，具体功能与限制放在各自说明中：
 
-快捷键至少包含 `⌘`、`⌥` 或 `⌃`；不绑定时也可手动执行。重复绑定会被拒绝，系统注册失败会在操作旁显示原因。应用不会自动占用某个默认组合键。
-
-关闭主窗口后，应用继续在菜单栏运行，快捷键仍有效；可以从菜单栏重新打开面板。退出应用会释放全部快捷键。本版不自动设置登录启动。
-
-商店支持搜索、安装、升级、启停、卸载，也可以点击“从 ZIP 安装…”导入离线包。升级保留用户配置；卸载会删除该插件本地配置。网络不可用时，已安装的插件仍然可用。
-
-## 首个插件
-
-**全局快捷键 v1.2.0** 提供四种操作：
-
-| 操作 | 行为 |
+| 插件 | 用途 |
 | --- | --- |
-| 打开应用 | 选择本机 `.app`，启动或切到前台 |
-| 打开网址 | 通过默认浏览器打开 HTTP / HTTPS 网址 |
-| 运行快捷指令 | 调用 macOS「快捷指令」中的同名指令 |
-| 显示主面板 | 唤起工具箱；窗口关闭后可重新打开 |
+| [全局快捷键](Plugins/global-shortcuts/README.md) | 打开应用、网址、系统快捷指令与主面板 |
+| [截图](Plugins/screenshot/README.md) | 截图、编辑、贴图、录屏与本地识别等工作流 |
+| [外设共享](Plugins/peripheral-sharing/README.md) | 双 Mac 键鼠与按需麦克风共享；完整双机验收范围见插件说明 |
 
-更复杂的自动化可以放在系统“快捷指令”中，再从本插件绑定快捷键调用。运行结果由快捷指令自身展示，应用只负责发起调用。
+## 让 agent 开发插件
 
-## 插件架构
+用你熟悉的 coding agent 打开仓库，让它读取 [AGENTS.md](AGENTS.md) 和 [插件开发 skill](.agents/skills/untitled-plugin-development/SKILL.md)，然后描述想要的行为。例如：
 
-0.4.0 引入 **插件开发协议 v2**：顶部左右、操作区左右、主内容、底部左右、系统菜单栏均为通用槽位。插件通过自己的清单选择组件、按钮、菜单、分段页及设置面板的布局，宿主不再根据插件类型选择业务页面。应用设置单独放在侧边栏底部；插件齿轮由插件自行声明。
+> 为 Untitled 开发一个插件，实现我需要的工作流；按项目规范提供源码、权限说明和可安装的 ZIP。
 
-原生能力通过 `PluginUIProvider` 注册，统一渲染器负责槽位、能力校验、动态命令状态以及 sheet / popover / inline 面板路由。ZIP 可以组合已注册的能力，新增全新的原生组件需要随宿主编译；本版不动态加载 Swift 二进制、JavaScript 或 Shell。旧 v1 插件继续通过兼容适配器使用。
-商店从 `Plugins/catalog.json` 获取列表，下载 GitHub Release 中的 ZIP 后验证 SHA-256。安装器只读取 ZIP 中的清单，不将压缩包解压到磁盘，也不执行安装脚本。插件包上限 2 MB，清单上限 256 KB。
-
-规范与发布方法见 [Plugins/README.md](Plugins/README.md)。本地插件配置保存在：
-
-```text
-~/Library/Application Support/com.tietiezhi.tools/Plugins/
-```
-
-该目录不在源码仓库中，用户选择的应用路径和快捷键不会随代码发布。
-
-## 开发与验证
-
-### 原生界面与 Liquid Glass
-
-主窗口采用 `hiddenTitleBar` 与全尺寸内容，不显示独立的标题条或工具栏，保留原生红黄绿按钮。左侧顶部预留 64 pt 窗口按钮区域，按钮距左侧 20 pt、顶部 26 pt，导航从其下方开始；原生按钮宿主仅覆盖左侧，避免挡住正文控件。顶部空白区和页面头部可拖动窗口。
-
-侧边栏固定为 224 pt，始终显示且不可拖动调整；主窗口仍支持正常调整尺寸。右侧内容统一使用 28 pt 水平边距。安装、搜索、添加操作等控件在各页面上方保持可见。
-
-窗口采用低透色的中性材质：深色模式以石墨黑为底，浅色模式使用对应的浅灰色，侧栏与正文只有轻微明暗差。原生 `underWindowBackground` 背景保留少量桌面层次，避免壁纸颜色大幅染色。玻璃效果集中在搜索与操作控件；Xcode 26+（或包含 macOS 26+ SDK 的命令行工具）构建时使用官方 `glassEffect`、`.glass` / `.glassProminent`，配合收敛的圆角、选中态细边缘和蓝色重点操作。开启系统“减少透明度”或增加对比度时提高背景遮罩的不透明度。macOS 14–15 或旧 SDK 构建保留兼容样式。
-
-设计依据：[Apple Liquid Glass 采用指南](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)、[材质规范](https://developer.apple.com/design/human-interface-guidelines/materials)。
-
-### 构建
+也可以自己从一个可工作的最小插件开始：
 
 ```bash
-swift build
-swift test
-./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.5.0 --write-catalog
+python3 scripts/new-plugin.py my-plugin \
+  --id dev.alice.my-plugin --name "My Plugin" --author alice
+python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin
 ```
 
-构建结果位于 `dist/debug/Tietiezhi Tools.app` 或 `dist/release/Tietiezhi Tools.app`。终端脚本使用当前 Mac 的架构和本地临时签名，适合开发；未启用 App Sandbox / Hardened Runtime，也没有 Developer ID 签名或公证。
+它会生成打开主面板的示例。把需求实现进去，更新说明，再将 ZIP 安装到本机验证。已有能力可以直接组合；新增原生能力通过 provider 接入宿主并重新构建。
 
-Xcode 开发入口：
+## 插件与分发
+
+| 扩展方式 | 当前支持 |
+| --- | --- |
+| manifest v2 组合宿主能力与界面槽位 | 支持，声明式 ZIP 可独立安装和分享 |
+| 新增 Swift 原生功能 | 支持，通过 PluginUIProvider 注册，随宿主编译 |
+| 独立 GitHub 源码与 Release、自己的许可证 | 支持，中央目录也可收录独立发布的包 |
+| 通用可执行扩展与 agent 完全接管 | 已制定实现要求，当前尚无通用运行时和开关 |
+
+ZIP 根目录只含 `manifest.json`、`README.md`、`LICENSE`，不会执行安装脚本。宿主校验包格式、兼容性、已注册能力及目录包的 SHA-256。升级保留用户配置；卸载删除该插件本地配置。开发协议见 [Plugins/README.md](Plugins/README.md)，贡献与二次开发规则见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+独立分发示例：
 
 ```bash
-open TietiezhiTools.xcodeproj
+python3 scripts/package-plugins.py --tag v1.0.0 \
+  --plugin /path/to/my-plugin --repository alice/my-plugin
 ```
 
-选择 `TietiezhiTools` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 保留 App Sandbox / Hardened Runtime，并声明网络访问、用户选择文件读写、应用级书签以及可选摄像头/麦克风权限；实际使用时仍需系统授权。正式分发需配置自己的签名、图标和公证。
+## 权限与用户控制
 
-Swift Package 与 Xcode 工程共用 `Sources/TietiezhiTools`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
+宿主以非 App Sandbox 方式构建，可按需求接入 macOS 的文件、网络、输入、设备及系统自动化能力。屏幕录制、辅助功能、输入监控、摄像头和麦克风已统一接入“应用设置 → 权限管理”；其他能力按具体功能扩展。
 
-发布完成后，可额外执行真实 GitHub 下载与安装检查：
+系统权限由 macOS 和用户决定。完全磁盘访问或完全接管并不因安装软件而自动开启；完全接管的执行范围、身份、持续授权、停止与撤销机制已写入 [权限与执行规范](docs/PERMISSIONS.md)。
 
-```bash
-TIETIEZHI_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
-```
+## 开发资料
 
-## 目录
+- [AGENTS.md](AGENTS.md)：未来 agents 的项目入口。
+- [插件开发 skill](.agents/skills/untitled-plugin-development/SKILL.md)：实现、验证与独立打包流程。
+- [贡献规范](CONTRIBUTING.md)与[插件协议](Plugins/README.md)：共享、二次开发与兼容约定。
+- [开发说明](docs/DEVELOPMENT.md)：构建、签名、Xcode、界面与验证。
+- [性能规范](docs/PERFORMANCE.md)：每个插件的资源预算、内存 / CPU / GPU / I/O 排查与回归验证。
+- [品牌与图标](docs/BRANDING.md)：选定原图、ICNS 生成与兼容标识。
 
-```text
-Sources/TietiezhiTools/
-├── App/         # 窗口、菜单栏和统一外观
-├── Capture/     # 截图、编辑、贴图、滚动拼接、录制、OCR 与文档导出
-├── Models/      # 应用外观设置
-├── Plugins/     # 插件规范、目录、ZIP 安装和配置存储
-├── Runtime/     # 通用动作执行与 Carbon 全局热键
-└── Views/       # 原生商店、插件配置、录制器与设置
-Plugins/         # 所有插件源码及统一商店目录
-Tests/           # 安装、校验、热键、布局、图像处理、拼接、识别和媒体导出检查
-Resources/       # Info.plist 与沙盒权限
-scripts/         # 本地构建与插件打包
-```
+宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留各自许可。为兼容现有用户，技术标识与数据目录仍沿用 `com.tietiezhi.tools`，内部 Swift module / Xcode scheme 仍为 `TietiezhiTools`。

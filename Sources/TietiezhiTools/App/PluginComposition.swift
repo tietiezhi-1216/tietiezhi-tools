@@ -8,6 +8,7 @@
         let registry = PluginUIRegistry()
         registry.register(HostPluginUIProvider())
         registry.register(CapturePluginUIProvider())
+        registry.register(SharingPluginUIProvider())
         return registry
     }
 }

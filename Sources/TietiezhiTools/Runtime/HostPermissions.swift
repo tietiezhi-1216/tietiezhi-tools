@@ -135,7 +135,7 @@ enum HostPermissionError: LocalizedError {
         defer { requesting = nil }
         await driver.request()
         refresh()
-        messages[id] = status(id) == .authorized ? nil : "请在系统隐私设置中允许 Tietiezhi Tools；部分权限更改后需要重新启动应用。"
+        messages[id] = status(id) == .authorized ? nil : "请在系统隐私设置中允许 \(HostInfo.name)；部分权限更改后需要重新启动应用。"
     }
     func openSettings(_ id: HostPermissionID) { byID[id]?.openSettings() }
 }

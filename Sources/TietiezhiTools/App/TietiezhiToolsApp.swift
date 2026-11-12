@@ -5,14 +5,36 @@ import SwiftUI
 struct TietiezhiToolsApp: App {
     @NSApplicationDelegateAdaptor(CaptureAppDelegate.self) private var appDelegate
     @AppStorage("appearance") private var appearance: AppAppearance = .system
-    @StateObject private var store = PluginStore()
+    @StateObject private var store: PluginStore
+
+    init() {
+        #if DEBUG
+        _store = StateObject(wrappedValue: PluginStore(directory: SharingAcceptance.pluginDirectoryForLaunch()))
+        #else
+        _store = StateObject(wrappedValue: PluginStore())
+        #endif
+    }
 
     var body: some Scene {
-        Window("Tietiezhi Tools", id: "main") {
+        Window(HostInfo.name, id: "main") {
             ContentView()
                 .environmentObject(store)
                 .onAppear { [store, appDelegate] in
-                    appDelegate.prepareForQuit = { [weak store] in await store?.prepareForQuit() }
+                    appDelegate.prepareForQuit = { [weak store] in await store?.prepareForQuit() ?? true }
+                    guard !appDelegate.handledLaunchArguments else { return }
+                    appDelegate.handledLaunchArguments = true
+                    if store.installed.contains(where: { $0.isEnabled && $0.manifest.hasCaptureCapability }) { store.screenshots.pinManager.activate() }
+                    let arguments = ProcessInfo.processInfo.arguments
+                    #if DEBUG
+                    if let index = arguments.firstIndex(of: "--sharing-acceptance"), arguments.indices.contains(index + 1) {
+                        do { try store.startSharingAcceptance(at: URL(fileURLWithPath: arguments[index + 1], isDirectory: true)) }
+                        catch { store.handleExecutionError(error) }
+                    }
+                    #endif
+                    if let index = arguments.firstIndex(of: "--install-plugin"), arguments.indices.contains(index + 1) {
+                        let url = URL(fileURLWithPath: arguments[index + 1])
+                        Task { await store.importPackage(url) }
+                    }
                 }
         }
         .windowStyle(.hiddenTitleBar)
@@ -26,22 +48,24 @@ struct TietiezhiToolsApp: App {
             SettingsView(store: store)
         }
 
-        MenuBarExtra("Tietiezhi Tools", systemImage: "wrench.and.screwdriver") {
+        MenuBarExtra(HostInfo.name, systemImage: "scribble") {
             AppMenuView().environmentObject(store)
         }
     }
 }
 
 @MainActor final class CaptureAppDelegate: NSObject, NSApplicationDelegate {
-    var prepareForQuit: (() async -> Void)?
+    var prepareForQuit: (() async -> Bool)?
+    var handledLaunchArguments = false
     private var finishing = false
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let prepareForQuit else { return .terminateNow }
         guard !finishing else { return .terminateLater }
         finishing = true
         Task {
-            await prepareForQuit()
-            sender.reply(toApplicationShouldTerminate: true)
+            let ready = await prepareForQuit()
+            if !ready { finishing = false }
+            sender.reply(toApplicationShouldTerminate: ready)
         }
         return .terminateLater
     }
@@ -69,7 +93,7 @@ private struct AppMenuView: View {
             PluginMenuContributions(plugin: plugin).environmentObject(store)
         }
         Divider()
-        Button("退出 Tietiezhi Tools") { NSApplication.shared.terminate(nil) }
+        Button("退出 Untitled") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
     }
 }

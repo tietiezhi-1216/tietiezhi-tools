@@ -4,9 +4,18 @@ import CoreML
 import Security
 import Vision
 
+struct RecognizedTextFragment: Sendable {
+    let range: NSRange
+    let rect: CGRect
+}
 struct RecognizedLine: Sendable {
     let text: String
     let rect: CGRect
+    var fragments: [RecognizedTextFragment] = []
+    func bounds(for range: NSRange) -> CGRect {
+        let matches = fragments.filter { NSIntersectionRange($0.range, range).length > 0 }
+        return matches.isEmpty ? rect : matches.reduce(CGRect.null) { $0.union($1.rect) }
+    }
 }
 
 struct CaptureText: Sendable {
@@ -39,14 +48,37 @@ struct CaptureText: Sendable {
 }
 
 enum CaptureRecognition {
+    static func sensitiveTextRegions(_ text: CaptureText, size: CGSize) -> [CGRect] {
+        let patterns = [#"https?://[^\s]+"#,#"(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)"#,#"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}"#,
+                        #"(?<!\d)(?:\+?86[- ]?)?1[3-9]\d{9}(?!\d)"#,
+                        #"(?<!\d)\d{17}[0-9X](?!\d)"#,
+                        #"(?:password|密码|token|api.?key|验证码)\s*[:：=]\s*\S+"#]
+        return text.lines.filter { line in patterns.contains { line.text.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil } }
+            .map { pixelRegion($0.rect, size: size) }
+    }
+    private static func pixelRegion(_ rect: CGRect, size: CGSize) -> CGRect {
+        // Round normalized Vision coordinates before expanding to avoid a floating-point
+        // residue adding a spurious pixel to a mathematically integral boundary.
+        func pixel(_ value: CGFloat) -> CGFloat { (value * 1_000_000).rounded() / 1_000_000 }
+        return CGRect(x: pixel(rect.minX * size.width), y: pixel((1 - rect.maxY) * size.height),
+               width: pixel(rect.width * size.width), height: pixel(rect.height * size.height))
+            .insetBy(dx: -4, dy: -4).integral.intersection(CGRect(origin: .zero, size: size))
+    }
+    static func redactionRegions(_ image: CGImage) async throws -> [CGRect] {
+        let text = try await recognize(image)
+        let faces: [CGRect] = try await Task.detached {
+            let request = VNDetectFaceRectanglesRequest(),codes=VNDetectBarcodesRequest()
+            let handler = VNImageRequestHandler(cgImage: image)
+            try handler.perform([request,codes])
+            return (request.results ?? []).map(\.boundingBox)+(codes.results ?? []).map(\.boundingBox)
+        }.value
+        try Task.checkCancellation()
+        let size = CGSize(width: image.width, height: image.height)
+        return sensitiveTextRegions(text, size: size) + faces.map { pixelRegion($0, size: size) }
+    }
     @available(macOS 26, *)
     static func structure(_ image: CGImage) async throws -> (table: [[String]], document: String) {
-        var request = RecognizeDocumentsRequest()
-        for (stage, devices) in request.supportedComputeStageDevices {
-            if let cpu = devices.first(where: { if case .cpu = $0 { true } else { false } }) {
-                request.setComputeDevice(cpu, for: stage)
-            }
-        }
+        let request = RecognizeDocumentsRequest()
         let observations = try await request.perform(on: image)
         let documents = observations.map(\.document)
         let tables = documents.flatMap(\.tables)
@@ -134,7 +166,15 @@ private final class CaptureRecognitionJob: @unchecked Sendable {
             try handler.perform(requests)
             let lines = (text.results ?? []).compactMap { result -> RecognizedLine? in
                 guard let candidate = result.topCandidates(1).first else { return nil }
-                return RecognizedLine(text: candidate.string, rect: result.boundingBox)
+                var fragments: [RecognizedTextFragment] = []
+                let string = candidate.string
+                for index in string.indices.prefix(10000) {
+                    let range = index..<string.index(after: index)
+                    if let box = try? candidate.boundingBox(for: range) {
+                        fragments.append(RecognizedTextFragment(range: NSRange(range, in: string), rect: box.boundingBox))
+                    }
+                }
+                return RecognizedLine(text: string, rect: result.boundingBox, fragments: fragments)
             }.sorted {
                 abs($0.rect.midY - $1.rect.midY) > 0.012 ? $0.rect.midY > $1.rect.midY : $0.rect.minX < $1.rect.minX
             }

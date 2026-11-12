@@ -30,7 +30,7 @@ struct SettingsView: View {
                 }
             }
             Section("关于") {
-                LabeledContent("应用", value: "Tietiezhi Tools")
+                LabeledContent("应用", value: HostInfo.name)
                 LabeledContent(
                     "版本",
                     value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
