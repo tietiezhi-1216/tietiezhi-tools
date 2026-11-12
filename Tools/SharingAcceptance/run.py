@@ -111,9 +111,9 @@ def run(args):
         if not remote["driverAvailable"]:
             return dict(result="blocked", reason="Remote HAL driver not installed/loaded", state=remote)
         inputs = a.status()["hardwareInputs"]
-        source = next((d for d in inputs if "Insta360" in d["name"]), None)
+        source = next((d for d in inputs if d["uid"] == args.microphone_uid), None)
         if not source:
-            return dict(result="blocked", reason="Expected explicit physical USB microphone not found")
+            return dict(result="blocked", reason="The explicitly selected physical microphone was not found")
         a.command("offerMicrophone", enabled=True, microphoneUID=source["uid"])
         b.command("receiveMicrophone", enabled=True)
         try:
@@ -143,11 +143,16 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session", default="/tmp/tietiezhi-sharing-acceptance-session.json")
-    parser.add_argument("--remote", default="slotgame-81")
-    parser.add_argument("--peer", default="100.114.234.62")
+    parser.add_argument("--remote", required=True, help="Trusted SSH alias for the receiver")
+    parser.add_argument("--peer", help="Receiver IP or DNS address, required for the network phase")
+    parser.add_argument("--microphone-uid", help="Explicit physical input UID, required for microphone phase")
     parser.add_argument("--phase", choices=["status", "network", "keyboard", "microphone", "stop"], required=True)
     parser.add_argument("--report")
     args = parser.parse_args()
+    if args.phase == "network" and not args.peer:
+        parser.error("--peer is required for network testing")
+    if args.phase == "microphone" and not args.microphone_uid:
+        parser.error("--microphone-uid is required; do not implicitly capture a virtual/default device")
     try:
         result = {"phase": args.phase, **run(args)}
     except Exception as error:

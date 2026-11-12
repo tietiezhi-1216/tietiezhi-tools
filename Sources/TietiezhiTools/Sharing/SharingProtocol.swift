@@ -55,6 +55,15 @@ enum SharingEdge: String, Codable, CaseIterable, Sendable, Identifiable {
     }
 }
 
+/// Tracks queued receiver movement independently of the asynchronously updated OS cursor.
+struct SharingPointerAccumulator {
+    private(set) var position: CGPoint
+    mutating func advance(x: Double, y: Double, constrain: (CGPoint) -> CGPoint) -> CGPoint {
+        position = constrain(CGPoint(x: position.x + x, y: position.y + y))
+        return position
+    }
+}
+
 struct SharingInputPacket: Codable, Equatable, Sendable {
     enum Kind: String, Codable, Sendable { case move, down, up, keyDown, keyUp, flags, scroll }
     var kind: Kind

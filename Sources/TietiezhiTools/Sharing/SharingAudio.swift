@@ -180,6 +180,13 @@ private final class SharingMicrophoneQueueContext: @unchecked Sendable {
                 AudioQueueSetProperty(created, kAudioQueueProperty_CurrentDevice, $0, UInt32(MemoryLayout<CFString>.size))
             }
             guard selectedStatus == noErr else { throw PluginError.invalid("无法选择实体麦克风（\(selectedStatus)）。") }
+            var negotiated = AudioStreamBasicDescription(), formatSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
+            guard AudioQueueGetProperty(created, kAudioQueueProperty_StreamDescription, &negotiated, &formatSize) == noErr,
+                  negotiated.mSampleRate == 48000, negotiated.mChannelsPerFrame == 1,
+                  negotiated.mBytesPerFrame == 4, negotiated.mBitsPerChannel == 32,
+                  negotiated.mFormatFlags & kAudioFormatFlagIsFloat != 0 else {
+                throw PluginError.invalid("麦克风未协商到共享所需的单声道 48 kHz Float32 格式。")
+            }
             for _ in 0..<3 {
                 var buffer: AudioQueueBufferRef?
                 let allocated = AudioQueueAllocateBuffer(created, 960 * 4, &buffer)

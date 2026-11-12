@@ -24,7 +24,7 @@ import AppKit
     private var shortcutKeys = Set<Int>()
     private var lastSwitch = Date.distantPast
     private var origin = CGPoint.zero
-    private var receiverCursor: CGPoint?
+    private var receiverCursor: SharingPointerAccumulator?
     #if DEBUG
     private(set) var appliedPacketCount = 0
     private(set) var replayedEventCount = 0
@@ -77,8 +77,8 @@ import AppKit
     }
     func receive(edge: SharingEdge, fraction: Double) {
         reset(); returnEdge = edge.opposite; mode = .receiving
-        receiverCursor = Self.clamp(returnEdge.entryPoint(fraction: fraction, bounds: Self.bounds))
-        CGWarpMouseCursorPosition(receiverCursor!)
+        receiverCursor = SharingPointerAccumulator(position: Self.clamp(returnEdge.entryPoint(fraction: fraction, bounds: Self.bounds)))
+        CGWarpMouseCursorPosition(receiverCursor!.position)
     }
     func reset() {
         let oldMode = mode; mode = .local; lastSwitch = Date()
@@ -95,7 +95,7 @@ import AppKit
             if packet.kind == .up {
                 let button = packet.code
                 event = CGEvent(mouseEventSource: nil, mouseType: button == 0 ? .leftMouseUp : button == 1 ? .rightMouseUp : .otherMouseUp,
-                    mouseCursorPosition: receiverCursor ?? CGEvent(source: nil)?.location ?? .zero, mouseButton: CGMouseButton(rawValue: UInt32(button))!)
+                    mouseCursorPosition: receiverCursor?.position ?? CGEvent(source: nil)?.location ?? .zero, mouseButton: CGMouseButton(rawValue: UInt32(button))!)
             } else {
                 event = CGEvent(keyboardEventSource: nil, virtualKey: CGKeyCode(packet.code), keyDown: false)
                 if packet.kind == .flags { event?.type = .flagsChanged }
@@ -197,7 +197,7 @@ import AppKit
         var event: CGEvent?
         // CGEvent.post is asynchronous. Later packets in the same network batch
         // must use our logical cursor, not a still-stale system cursor snapshot.
-        let current = receiverCursor ?? CGEvent(source: nil)?.location ?? .zero
+        let current = receiverCursor?.position ?? CGEvent(source: nil)?.location ?? .zero
         switch packet.kind {
         case .move:
             let next = CGPoint(x: current.x + packet.x, y: current.y + packet.y)
@@ -205,8 +205,10 @@ import AppKit
                returnEdge.isCrossing(next, delta: .init(x: packet.x, y: packet.y), bounds: Self.bounds) { returnLocal(); return }
             let button = heldButtons.sorted().first
             let type: CGEventType = button == nil ? .mouseMoved : button == 0 ? .leftMouseDragged : button == 1 ? .rightMouseDragged : .otherMouseDragged
-            receiverCursor = Self.clamp(next)
-            event = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: receiverCursor!, mouseButton: CGMouseButton(rawValue: UInt32(button ?? 0))!)
+            var pointer = receiverCursor ?? SharingPointerAccumulator(position: current)
+            let position = pointer.advance(x: packet.x, y: packet.y) { Self.clamp($0) }
+            receiverCursor = pointer
+            event = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: position, mouseButton: CGMouseButton(rawValue: UInt32(button ?? 0))!)
             // This is already an absolute target position. Reapplying deltas at
             // the HID tap can introduce a second round of pointer acceleration.
         case .down, .up:

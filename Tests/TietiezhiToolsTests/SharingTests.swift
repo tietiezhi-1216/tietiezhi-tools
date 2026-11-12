@@ -88,6 +88,15 @@ import Testing
         #expect(throws: PluginError.self) { try SharingMessage(kind: .audio, audio: Data([1, 2, 3])).validate() }
         #expect(throws: PluginError.self) { try SharingMessage(kind: .audio, audio: Data(count: 32772)).validate() }
     }
+    @Test func queuedPointerMovesNeverReuseTheStaleSystemCursor() {
+        var pointer = SharingPointerAccumulator(position: CGPoint(x: 4, y: 100))
+        let constrain: (CGPoint) -> CGPoint = { CGPoint(x: min(1919, max(0, $0.x)), y: min(1079, max(0, $0.y))) }
+        #expect(pointer.advance(x: 100, y: 20, constrain: constrain) == CGPoint(x: 104, y: 120))
+        #expect(pointer.advance(x: 200, y: -10, constrain: constrain) == CGPoint(x: 304, y: 110))
+        // A click queued before the OS processes those moves uses this logical position.
+        #expect(pointer.position == CGPoint(x: 304, y: 110))
+        #expect(pointer.advance(x: 4096, y: 4096, constrain: constrain) == CGPoint(x: 1919, y: 1079))
+    }
     @Test func screenEdgesUseGlobalCoordinatesAndOppositeEntry() {
         let bounds = CGRect(x: -1920, y: -100, width: 3840, height: 1200)
         #expect(SharingEdge.left.isCrossing(.init(x: -1920, y: 400), delta: .init(x: -1, y: 0), bounds: bounds))
