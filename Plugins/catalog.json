@@ -4,20 +4,29 @@
     {
       "id": "com.tietiezhi.global-shortcuts",
       "name": "全局快捷键",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "summary": "用自定义快捷键打开应用、打开网址、运行 macOS 快捷指令，或唤起主面板。",
       "author": "tietiezhi-1216",
-      "downloadURL": "https://github.com/tietiezhi-1216/tietiezhi-tools/releases/download/v0.5.0/global-shortcuts-1.2.0.zip",
-      "sha256": "2271749905c255e7eca5dedc199946814a8fa018ece7b20dec0a22cb8ab6d7fd"
+      "downloadURL": "https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/global-shortcuts-1.2.1.zip",
+      "sha256": "7cc566aa616f181b65327b4de8689fd193129581f7f934fc12817b1805c5c5a9"
+    },
+    {
+      "id": "com.tietiezhi.peripheral-sharing",
+      "name": "外设共享",
+      "version": "1.0.0",
+      "summary": "两台 Mac 通过加密局域网连接共享键盘、鼠标与按需麦克风。支持屏幕边缘接力、快捷键切换和独立虚拟麦克风。",
+      "author": "tietiezhi-1216",
+      "downloadURL": "https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/peripheral-sharing-1.0.0.zip",
+      "sha256": "707c9861bc7b165416a28f219df718cbea74e2c8eff09c36661afcfe35333eb4"
     },
     {
       "id": "com.tietiezhi.screenshot",
       "name": "截图",
-      "version": "1.2.0",
+      "version": "1.5.0",
       "summary": "截图、置顶贴图、箭头与马赛克标注、横纵滚动长截图、录屏与 GIF、本地 OCR 和翻译，以及表格、公式和文档导出。",
       "author": "tietiezhi-1216",
-      "downloadURL": "https://github.com/tietiezhi-1216/tietiezhi-tools/releases/download/v0.5.0/screenshot-1.2.0.zip",
-      "sha256": "403c80c7246aea430dbd6c9f97a7d32e92e26b5633e46f175fe624bda42c25b2"
+      "downloadURL": "https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/screenshot-1.5.0.zip",
+      "sha256": "559cfc063dcb7dba94128f3216952756af9af0df890dcd3fb12b1dcc8854b0ab"
     }
   ]
 }
