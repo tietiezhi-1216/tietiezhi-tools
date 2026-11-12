@@ -9,8 +9,8 @@ case "$configuration" in
     *) echo "用法：$0 [debug|release]" >&2; exit 1 ;;
 esac
 
-if [[ ${TIETIEZHI_SIGNING_IDENTITY+x} ]]; then
-    signing_identity="$TIETIEZHI_SIGNING_IDENTITY"
+if [[ ${UNTITLED_SIGNING_IDENTITY+x} ]]; then
+    signing_identity="$UNTITLED_SIGNING_IDENTITY"
 elif [[ -f "$project_root/.signing-identity" ]]; then
     signing_identity="$(tr -d '\r\n' < "$project_root/.signing-identity")"
 else
@@ -30,11 +30,11 @@ if [[ "$signing_identity" != "-" ]]; then
         exit 1
     fi
     signing_arguments=(--sign "$signing_identity" --options runtime --timestamp
-        --entitlements "$project_root/Resources/TietiezhiTools-DeveloperID.entitlements")
+        --entitlements "$project_root/Resources/Untitled-DeveloperID.entitlements")
 fi
 
 cd "$project_root"
-swift build --configuration "$configuration" --product TietiezhiTools
+swift build --configuration "$configuration" --product Untitled
 binary_directory="$(swift build --configuration "$configuration" --show-bin-path)"
 output_directory="$project_root/dist/$configuration"
 app_bundle="$output_directory/Untitled.app"
@@ -44,15 +44,18 @@ trap 'rm -rf "$staging_directory"' EXIT
 staged_bundle="$staging_directory/Untitled.app"
 
 mkdir -p "$staged_bundle/Contents/MacOS" "$staged_bundle/Contents/Resources"
-cp "$binary_directory/TietiezhiTools" "$staged_bundle/Contents/MacOS/TietiezhiTools"
+cp "$binary_directory/Untitled" "$staged_bundle/Contents/MacOS/Untitled"
 cp "$project_root/Resources/Info.plist" "$staged_bundle/Contents/Info.plist"
+for resource_bundle in "$binary_directory"/*.bundle; do
+    if [[ -d "$resource_bundle" ]]; then cp -R "$resource_bundle" "$staged_bundle/Contents/Resources/"; fi
+done
 "$project_root/scripts/build-icon.sh" "$staged_bundle/Contents/Resources/AppIcon.icns"
 
 if [[ -d "$project_root/Resources/KaTeX" ]]; then
     cp -R "$project_root/Resources/KaTeX" "$staged_bundle/Contents/Resources/KaTeX"
 fi
 
-TIETIEZHI_SIGNING_IDENTITY="$signing_identity" "$project_root/scripts/build-sharing-microphone.sh" "$staged_bundle/Contents/Resources/PeripheralAudio"
+UNTITLED_SIGNING_IDENTITY="$signing_identity" "$project_root/scripts/build-sharing-microphone.sh" "$staged_bundle/Contents/Resources/PeripheralAudio"
 
 mkdir -p "$staged_bundle/Contents/Helpers" "$staged_bundle/Contents/Resources/Licenses/libwebp"
 cp "$project_root/LICENSE" "$staged_bundle/Contents/Resources/Licenses/Untitled.txt"

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Tietiezhi Tools contributors. MIT License.
+// Copyright (c) 2026 Untitled contributors. MIT License.
 #include "Loopback.hpp"
 #include <cassert>
 #include <iostream>

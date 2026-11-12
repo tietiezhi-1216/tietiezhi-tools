@@ -1,24 +1,136 @@
 name: macOS CI
 
 on:
-  push:
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   verify:
+    name: verify
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Toolchain
-        run: xcodebuild -version
+        run: |
+          xcodebuild -version
+          swift --version
+          uname -m
+      - name: Check project identities and versions
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ -n "$BASE_SHA" ]]; then
+            python3 scripts/check-project.py --base "$BASE_SHA"
+          else
+            python3 scripts/check-project.py
+          fi
+      - name: Test release decisions without credentials
+        run: python3 -m unittest discover -s Tests/ReleaseAutomation
       - name: Build and test
         run: swift test --no-parallel
-      - name: Validate plugin packages
-        run: python3 scripts/package-plugins.py --tag v0.9.0
-      - name: Build app
+      - name: Build app and validate helpers
+        env:
+          UNTITLED_SIGNING_IDENTITY: "-"
         run: ./scripts/build-app.sh release
       - name: Build Xcode target
-        run: xcodebuild -project TietiezhiTools.xcodeproj -scheme TietiezhiTools -configuration Debug CODE_SIGNING_ALLOWED=NO build
+        run: xcodebuild -project Untitled.xcodeproj -scheme Untitled -configuration Debug CODE_SIGNING_ALLOWED=NO build
+      - name: Package application and plugins
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/prepare-release.py --app dist/release/Untitled.app --repository "$REPOSITORY" --output dist/release-candidate
+      - name: Validate packages against the host runtime
+        env:
+          UNTITLED_PACKAGE_CANDIDATES_FILE: dist/.release-candidate-validation/packages.json
+        run: swift test --no-parallel --filter validateReleasePackages
+      - name: Upload reviewable packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Untitled-${{ github.sha }}
+          path: dist/release-candidate/*
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    name: deploy
+    needs: verify
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: macos-26
+    environment: release
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      UNTITLED_RELEASE_MODE: ${{ vars.UNTITLED_RELEASE_MODE || 'preview' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Determine release state
+        id: release
+        run: python3 scripts/github-release.py state --mode "$UNTITLED_RELEASE_MODE"
+      - name: Configure signing
+        if: steps.release.outputs.publish == 'true'
+        env:
+          UNTITLED_CERTIFICATE_P12: ${{ secrets.UNTITLED_CERTIFICATE_P12 }}
+          UNTITLED_CERTIFICATE_PASSWORD: ${{ secrets.UNTITLED_CERTIFICATE_PASSWORD }}
+          UNTITLED_NOTARY_KEY: ${{ secrets.UNTITLED_NOTARY_KEY }}
+          UNTITLED_NOTARY_KEY_ID: ${{ secrets.UNTITLED_NOTARY_KEY_ID }}
+        run: bash scripts/ci-signing.sh
+      - name: Build release
+        if: steps.release.outputs.publish == 'true'
+        run: ./scripts/build-app.sh release
+      - name: Notarize and staple
+        if: steps.release.outputs.publish == 'true' && env.UNTITLED_RELEASE_MODE == 'notarized'
+        env:
+          UNTITLED_NOTARY_KEY_ID: ${{ secrets.UNTITLED_NOTARY_KEY_ID }}
+          UNTITLED_NOTARY_ISSUER: ${{ secrets.UNTITLED_NOTARY_ISSUER }}
+        run: bash scripts/ci-notarize.sh
+      - name: Prepare final packages
+        if: steps.release.outputs.publish == 'true'
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          arguments=()
+          if [[ "$UNTITLED_RELEASE_MODE" == notarized ]]; then arguments+=(--notarized); fi
+          python3 scripts/prepare-release.py --app dist/release/Untitled.app --repository "$REPOSITORY" --output dist/publish "${arguments[@]}"
+      - name: Validate final plugin packages
+        if: steps.release.outputs.publish == 'true'
+        env:
+          UNTITLED_PACKAGE_CANDIDATES_FILE: dist/.publish-validation/packages.json
+        run: swift test --no-parallel --filter validateReleasePackages
+      - name: Publish release and deploy plugin catalog
+        if: steps.release.outputs.publish == 'true'
+        run: python3 scripts/github-release.py publish --assets dist/publish --mode "$UNTITLED_RELEASE_MODE"
+      - name: Repair catalog after an interrupted deployment
+        if: steps.release.outputs.repair == 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          mkdir -p dist/repair
+          gh release download "$TAG" --dir dist/repair
+          python3 scripts/github-release.py repair --assets dist/repair --mode "$UNTITLED_RELEASE_MODE"
+      - name: Verify live plugin installation
+        if: steps.release.outputs.publish == 'true' || steps.release.outputs.repair == 'true'
+        env:
+          UNTITLED_NETWORK_TEST: "1"
+        run: swift test --no-parallel --filter downloadFromPublishedGitHubCatalog
+      - name: Remove temporary signing material
+        if: always()
+        run: bash scripts/ci-signing.sh cleanup

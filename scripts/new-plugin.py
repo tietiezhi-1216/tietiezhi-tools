@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--id", required=True, help="Stable namespaced id, for example dev.alice.my-plugin")
     parser.add_argument("--name", required=True, help="User-visible name")
     parser.add_argument("--author", required=True)
-    parser.add_argument("--repository", default="https://github.com/tietiezhi-1216/untitled")
+    parser.add_argument("--repository", default=json.loads((root / "Sources/Untitled/Resources/Project.json").read_text())["repository"])
     parser.add_argument("--output", type=Path, default=root / "Plugins", help="Parent directory")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", args.slug):
@@ -32,7 +32,7 @@ def main():
     manifest = {
         "schemaVersion": 2, "id": args.id, "name": args.name, "version": "1.0.0",
         "summary": "打开 Untitled 主面板；可在此基础上开发自己的功能。", "author": args.author,
-        "repository": args.repository, "minimumHostVersion": "0.9.0",
+        "repository": args.repository, "minimumHostVersion": "0.10.0",
         "actions": ["showMainWindow"],
         "templates": [{"id": "main-panel", "title": "打开主面板", "action": "showMainWindow"}],
         "permissions": [],

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "id": "com.tietiezhi.peripheral-sharing",
+  "id": "app.untitled.peripheral-sharing",
   "name": "外设共享",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "summary": "两台 Mac 通过加密局域网连接共享键盘、鼠标与按需麦克风。支持屏幕边缘接力、快捷键切换和独立虚拟麦克风。",
-  "author": "tietiezhi-1216",
+  "author": "Untitled contributors",
   "repository": "https://github.com/tietiezhi-1216/untitled",
-  "minimumHostVersion": "0.9.0",
+  "minimumHostVersion": "0.10.0",
   "actions": [
     "sharePeripherals",
     "switchPeripheralControl",

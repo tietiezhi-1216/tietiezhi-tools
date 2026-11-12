@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/tietiezhi-1216/untitled/releases/tag/v0.9.0">下载预览版</a> ·
+  <a href="https://github.com/tietiezhi-1216/untitled/releases">下载预览版</a> ·
   <a href="AGENTS.md">Agent 开发入口</a> ·
   <a href="Plugins/README.md">插件文档</a> ·
   <a href="CONTRIBUTING.md">参与贡献</a>
@@ -36,14 +36,14 @@ Untitled 是由用户通过 agents 持续定制的原生 macOS 软件。宿主�
 
 ### 下载安装
 
-下载 [Untitled v0.9.0 · macOS 安装包](https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/Untitled-macOS-arm64-v0.9.0.zip)，解压后将 `Untitled.app` 拖入“应用程序”目录。
+下载 [Untitled 的 macOS 安装包](https://github.com/tietiezhi-1216/untitled/releases)，在 Release 中选择对应架构的 ZIP，解压后将 `Untitled.app` 拖入“应用程序”目录。
 
-| 当前发行版 | 说明 |
+| 发行信息 | 说明 |
 | --- | --- |
-| 版本 | [v0.9.0 预览版](https://github.com/tietiezhi-1216/untitled/releases/tag/v0.9.0) |
-| 平台 | 仅支持 macOS；当前安装包适用于 Apple Silicon（arm64），最低 macOS 14 |
-| 签名 | Developer ID 签名，启用 Hardened Runtime；尚未完成 Apple 公证 |
-| 校验与验收 | [SHA-256 校验文件](https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/SHA256SUMS.txt) · [构建与测试](https://github.com/tietiezhi-1216/untitled/actions/workflows/ci.yml) · 真机与性能验收范围见发布说明 |
+| 版本 | [Releases](https://github.com/tietiezhi-1216/untitled/releases) 中提供版本、更新内容与已知限制 |
+| 平台 | 仅支持 macOS，最低 macOS 14；安装包名称和 BUILD-INFO 标明架构 |
+| 签名 | 每个 Release 明确列出 Developer ID / 临时签名与 Apple 公证状态；预览版不保证通过 Gatekeeper |
+| 校验与验收 | 每个 Release 附 SHA256SUMS.txt 和 BUILD-INFO.json；[构建与测试](https://github.com/tietiezhi-1216/untitled/actions/workflows/ci.yml)及真机范围可查 |
 
 录屏和系统翻译需要 macOS 15+，本地文档结构识别需要 macOS 26+。系统权限在实际使用相关功能时由用户授权。
 
@@ -109,6 +109,12 @@ python3 scripts/package-plugins.py --tag v1.0.0 \
 
 系统权限由 macOS 和用户决定。完全磁盘访问或完全接管并不因安装软件而自动开启；完全接管的执行范围、身份、持续授权、停止与撤销机制已写入 [权限与执行规范](docs/PERMISSIONS.md)。
 
+## 一起开发
+
+从功能分支或 fork 发起 Pull Request，CI 自动完成测试、Swift Package / Xcode 构建与插件包验证，并提供审查产物。main 受到保护，不直接推送；维护者合并后，CI/CD 自动发布新版本和插件目录。同版本公开资产不覆盖。
+
+默认自动发布明确标注的预览版；正式 Developer ID 签名与 Apple 公证需要维护者配置 GitHub secrets。流程、配置和失败恢复见 [CI/CD 与发布](docs/RELEASING.md)。
+
 ## 开发资料
 
 | 你想做什么 | 从这里开始 |
@@ -118,6 +124,7 @@ python3 scripts/package-plugins.py --tag v1.0.0 \
 | 贡献、fork 或独立分发 | [贡献规范](CONTRIBUTING.md) |
 | 接入系统权限或设计完全接管 | [权限与执行规范](docs/PERMISSIONS.md) |
 | 排查高内存和高开销 | [性能规范](docs/PERFORMANCE.md)：资源预算、内存 / CPU / GPU / I/O 与回归验证 |
+| 通过 PR 协作与自动发布 | [CI/CD 与发布](docs/RELEASING.md) · [身份与数据迁移](docs/MIGRATION.md) |
 | 使用品牌资源 | [品牌与图标](docs/BRANDING.md)：选定原图、圆角展示与 ICNS 生成 |
 
-宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留各自许可。为兼容现有用户，技术标识与数据目录仍沿用 `com.tietiezhi.tools`，内部 Swift module / Xcode scheme 仍为 `TietiezhiTools`。
+宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留各自许可。包、模块、工程与可执行文件统一为 `Untitled`，Bundle ID 为 `app.untitled`；已有用户升级见[身份与数据迁移](docs/MIGRATION.md)。

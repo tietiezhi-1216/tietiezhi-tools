@@ -142,7 +142,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--session", default="/tmp/tietiezhi-sharing-acceptance-session.json")
+    parser.add_argument("--session", default="/tmp/untitled-sharing-acceptance-session.json")
     parser.add_argument("--remote", required=True, help="Trusted SSH alias for the receiver")
     parser.add_argument("--peer", help="Receiver IP or DNS address, required for the network phase")
     parser.add_argument("--microphone-uid", help="Explicit physical input UID, required for microphone phase")
