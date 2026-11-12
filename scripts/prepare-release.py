@@ -50,6 +50,8 @@ external = json.loads((root / "Plugins/catalog-external.json").read_text())
 assert external["schemaVersion"] == 1 and len(external["plugins"]) <= 100
 ids = {entry["id"] for entry in catalog["plugins"]}
 for entry in external["plugins"]:
+    assert all(isinstance(entry.get(key), str) for key in
+               ("id", "name", "version", "summary", "author", "downloadURL", "sha256"))
     assert re.fullmatch(r"[a-z0-9]+([.-][a-z0-9]+)+", entry["id"])
     assert entry["id"] not in ids, "Duplicate catalog ID"
     ids.add(entry["id"])
@@ -72,7 +74,9 @@ for entry in external["plugins"]:
     catalog["plugins"].append(entry)
     candidates.append(str(local))
 (output / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n")
-(validation / "packages.json").write_text(json.dumps(candidates) + "\n")
+(validation / "packages.json").write_text(json.dumps({
+    "catalog": str(output / "catalog.json"), "packages": candidates
+}) + "\n")
 
 archive = output / f"Untitled-macOS-{architecture}-{tag}.zip"
 subprocess.run(["ditto", "-c", "-k", "--keepParent", str(app), str(archive)], check=True)

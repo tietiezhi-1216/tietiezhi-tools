@@ -8,6 +8,7 @@ xcuserdata/
 .signing-identity
 *.p12
 *.pfx
+*.p8
 *.key
 *.certSigningRequest
 __pycache__/
