@@ -1,24 +1,53 @@
-<p align="center"><img src="Resources/Brand/AppIcon.png" width="104" alt="Untitled 裂变图标"></p>
+<p align="center">
+  <img src="Resources/Brand/ReadmeIcon.svg" width="112" height="112" alt="Untitled 黑白裂变图标">
+</p>
 
-# Untitled
+<h1 align="center">Untitled</h1>
 
-**软件由你定义。**
+<p align="center">
+  <strong>软件由你定义。</strong><br>
+  让 agent 实现想要的功能，以插件安装、定制和分享。
+</p>
 
-想要一个功能，就让 agent 把它做出来。把它装进自己的软件，按习惯修改，再把插件分享给其他人，让他们继续创造。
+<p align="center">
+  <a href="#开始使用"><img src="https://img.shields.io/badge/macOS-14%2B-24292f?labelColor=57606a" alt="macOS 14 及以上"></a>
+  <a href="docs/DEVELOPMENT.md"><img src="https://img.shields.io/badge/Swift-6-24292f?labelColor=57606a" alt="Swift 6"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-24292f?labelColor=57606a" alt="MIT License"></a>
+</p>
 
-Untitled 为这种开发方式提供一个原生 macOS 应用：稳定的宿主、可选择的插件、开放的源码，以及持续生长的功能。你可以从自己需要的一小部分开始，逐渐把软件变成适合自己的样子。
+<p align="center">
+  <a href="https://github.com/tietiezhi-1216/untitled/releases/tag/v0.9.0">下载预览版</a> ·
+  <a href="AGENTS.md">Agent 开发入口</a> ·
+  <a href="Plugins/README.md">插件文档</a> ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
+</p>
 
-## 按自己的需要创造
+---
 
-- **功能自由生长**：截图、自动化或完全不同的新想法，都可以通过插件实现。
-- **自己选择安装**：插件可安装、启停、升级和卸载；支持从商店或离线 ZIP 安装。
-- **自己掌握源码**：修改实现、fork、二次开发，或只保留在自己的机器上。
-- **自由分享**：本仓库接受各种用途的插件，开发者也能用自己的仓库与 Release 独立分发。
-- **专注 macOS**：Swift 6 + SwiftUI / AppKit，运行最低 macOS 14，直接使用原生系统能力。
+Untitled 是由用户通过 agents 持续定制的原生 macOS 软件。宿主负责插件安装、界面组合、配置、权限和生命周期；你决定它做什么，以及如何适合自己的习惯。
 
-品牌名 Untitled 表示用途由你定义。黑白「裂变」图标保留混沌、无序和不断变化的感觉。
+| 从想法到自己的软件 | 怎么做 |
+| --- | --- |
+| **创造** | 描述需求，让 agent 实现功能；从一个小工作流开始，持续修改 |
+| **选择** | 按需安装、启停、升级或卸载插件，支持在线商店和离线 ZIP |
+| **分享** | 开放源码、fork 和二次开发；可提交到本仓库，也可在自己的仓库独立分发 |
 
-## 使用
+## 开始使用
+
+### 下载安装
+
+下载 [Untitled v0.9.0 · macOS 安装包](https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/Untitled-macOS-arm64-v0.9.0.zip)，解压后将 `Untitled.app` 拖入“应用程序”目录。
+
+| 当前发行版 | 说明 |
+| --- | --- |
+| 版本 | [v0.9.0 预览版](https://github.com/tietiezhi-1216/untitled/releases/tag/v0.9.0) |
+| 平台 | 仅支持 macOS；当前安装包适用于 Apple Silicon（arm64），最低 macOS 14 |
+| 签名 | Developer ID 签名，启用 Hardened Runtime；尚未完成 Apple 公证 |
+| 校验与验收 | [SHA-256 校验文件](https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/SHA256SUMS.txt) · [构建与测试](https://github.com/tietiezhi-1216/untitled/actions/workflows/ci.yml) · 真机与性能验收范围见发布说明 |
+
+录屏和系统翻译需要 macOS 15+，本地文档结构识别需要 macOS 26+。系统权限在实际使用相关功能时由用户授权。
+
+### 从源码运行
 
 ```bash
 git clone https://github.com/tietiezhi-1216/untitled.git
@@ -26,7 +55,9 @@ cd untitled
 ./scripts/run.sh
 ```
 
-构建需要 macOS 26+ SDK 和 Swift 6 工具链，推荐 Xcode 26+；未安装命令行工具时先运行 `xcode-select --install`。构建结果是 `dist/debug/Untitled.app`。运行版本要求按插件区分：例如录屏、系统翻译需要 macOS 15+，本地文档结构识别需要 macOS 26+。
+构建需要 macOS 26+ SDK 和 Swift 6 工具链，推荐 Xcode 26+；未安装命令行工具时先运行 `xcode-select --install`。构建结果是 `dist/debug/Untitled.app`，详细步骤见[开发说明](docs/DEVELOPMENT.md)。
+
+### 选择插件
 
 首页选择插件安装，或点击“从 ZIP 安装…”导入他人分享的包。打开插件后使用其界面、操作或快捷键。关闭主窗口后应用继续在菜单栏运行；退出会释放快捷键并结束相关任务。已安装的本地能力可离线使用，外部服务按插件自身要求工作。
 
@@ -80,11 +111,13 @@ python3 scripts/package-plugins.py --tag v1.0.0 \
 
 ## 开发资料
 
-- [AGENTS.md](AGENTS.md)：未来 agents 的项目入口。
-- [插件开发 skill](.agents/skills/untitled-plugin-development/SKILL.md)：实现、验证与独立打包流程。
-- [贡献规范](CONTRIBUTING.md)与[插件协议](Plugins/README.md)：共享、二次开发与兼容约定。
-- [开发说明](docs/DEVELOPMENT.md)：构建、签名、Xcode、界面与验证。
-- [性能规范](docs/PERFORMANCE.md)：每个插件的资源预算、内存 / CPU / GPU / I/O 排查与回归验证。
-- [品牌与图标](docs/BRANDING.md)：选定原图、ICNS 生成与兼容标识。
+| 你想做什么 | 从这里开始 |
+| --- | --- |
+| 让 agent 理解项目 | [AGENTS.md](AGENTS.md) · [插件开发 skill](.agents/skills/untitled-plugin-development/SKILL.md) |
+| 实现、组合与打包插件 | [插件协议](Plugins/README.md) · [开发说明](docs/DEVELOPMENT.md) |
+| 贡献、fork 或独立分发 | [贡献规范](CONTRIBUTING.md) |
+| 接入系统权限或设计完全接管 | [权限与执行规范](docs/PERMISSIONS.md) |
+| 排查高内存和高开销 | [性能规范](docs/PERFORMANCE.md)：资源预算、内存 / CPU / GPU / I/O 与回归验证 |
+| 使用品牌资源 | [品牌与图标](docs/BRANDING.md)：选定原图、圆角展示与 ICNS 生成 |
 
 宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留各自许可。为兼容现有用户，技术标识与数据目录仍沿用 `com.tietiezhi.tools`，内部 Swift module / Xcode scheme 仍为 `TietiezhiTools`。
