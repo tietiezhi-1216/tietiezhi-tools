@@ -1,6 +1,6 @@
 # Untitled 开发说明
 
-项目只面向 macOS。Swift Package 与 Xcode 共用源码；显示名为 Untitled，兼容 module / scheme 名保留 TietiezhiTools。插件贡献见 [CONTRIBUTING](../CONTRIBUTING.md)。
+项目只面向 macOS。Swift Package 与 Xcode 共用源码；应用、package、module、target、scheme 与可执行文件统一为 `Untitled`，Xcode 工程为 `Untitled.xcodeproj`。插件贡献见 [CONTRIBUTING](../CONTRIBUTING.md)。
 
 
 ### 原生界面与 Liquid Glass
@@ -19,7 +19,7 @@
 swift build
 swift test --no-parallel
 ./scripts/build-app.sh release
-python3 scripts/package-plugins.py --tag v0.9.0
+python3 scripts/package-plugins.py --tag v0.10.0
 # 仅在 Release 资产实际发布后，追加 --write-catalog 更新在线商店
 ```
 
@@ -47,35 +47,36 @@ printf '%s\n' '证书的40位SHA-1' > .signing-identity
 
 `.signing-identity` 是仅用于本机的配置，不提交到仓库，也不包含私钥或密码。`scripts/run.sh` 同样读取此配置。配置了证书后，构建会启用 Hardened Runtime、摄像头与麦克风访问 entitlement 和安全时间戳，并在签名校验成功后替换旧构建；证书或私钥不可用时会直接报错，不会退回临时签名。
 
-也可以用环境变量 `TIETIEZHI_SIGNING_IDENTITY` 覆盖本机配置。未配置身份时保留临时签名，适用于 CI 和首次试用；显式设置为 `-` 也可使用临时签名。临时签名在代码变化后可能无法沿用先前的系统授权。从临时签名切换为证书签名时，需要重新确认系统权限。公开分发仍需使用 Developer ID Application 证书并完成 Apple 公证；此脚本不自动提交公证。
+也可以用环境变量 `UNTITLED_SIGNING_IDENTITY` 覆盖本机配置。未配置身份时保留临时签名，适用于 CI 和首次试用；显式设置为 `-` 也可使用临时签名。临时签名在代码变化后可能无法沿用先前的系统授权。从临时签名切换为证书签名时，需要重新确认系统权限。公开分发仍需使用 Developer ID Application 证书并完成 Apple 公证；此脚本不自动提交公证。
 
-如果切换签名后，系统设置中开关已开启，应用却仍显示未授权，旧记录可能仍绑定临时签名的代码哈希。可先退出应用，仅重置本应用对应的权限，例如 `tccutil reset ScreenCapture com.tietiezhi.tools`，再打开当前签名版本，从应用的权限管理重新请求并由用户允许；系统提示时选择退出并重新打开。辅助功能和输入监控对应 `Accessibility`、`ListenEvent`，仅在相应权限出现同样问题时分别处理。无需重置其他软件或所有权限。[Apple 的代码签名说明](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)介绍了系统如何用指定要求识别更新后的应用。
+如果切换签名后，系统设置中开关已开启，应用却仍显示未授权，旧记录可能仍绑定临时签名的代码哈希。可先退出应用，仅重置本应用对应的权限，例如 `tccutil reset ScreenCapture com.untitled.app`，再打开当前签名版本，从应用的权限管理重新请求并由用户允许；系统提示时选择退出并重新打开。辅助功能和输入监控对应 `Accessibility`、`ListenEvent`，仅在相应权限出现同样问题时分别处理。无需重置其他软件或所有权限。[Apple 的代码签名说明](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)介绍了系统如何用指定要求识别更新后的应用。
 
 Xcode 开发入口：
 
 ```bash
-open TietiezhiTools.xcodeproj
+open Untitled.xcodeproj
 ```
 
-选择 `TietiezhiTools` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 与命令行构建统一采用非 App Sandbox 配置，保留 Hardened Runtime 与摄像头/麦克风 entitlement；系统受保护操作仍需用户授权。`.signing-identity` 只作用于终端构建，Xcode 中需另外配置同一签名身份。正式分发需配置自己的签名和公证。
+选择 `Untitled` scheme 和 `My Mac` 后按 `⌘R`。Xcode Target 与命令行构建统一采用非 App Sandbox 配置，保留 Hardened Runtime 与摄像头/麦克风 entitlement；系统受保护操作仍需用户授权。`.signing-identity` 只作用于终端构建，Xcode 中需另外配置同一签名身份。正式分发需配置自己的签名和公证。
 
-Swift Package 与 Xcode 工程共用 `Sources/TietiezhiTools`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
+Swift Package 与 Xcode 工程共用 `Sources/Untitled`。新增宿主源码时，请同时将文件添加到 Xcode target；测试通过 Swift Package 执行。GitHub Actions 验证测试、插件打包和 Xcode 构建。
 
 发布完成后，可额外执行真实 GitHub 下载与安装检查：
 
 ```bash
-TIETIEZHI_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
+UNTITLED_NETWORK_TEST=1 swift test --filter downloadFromPublishedGitHubCatalog
 ```
 
 ## 目录
 
 ```text
-Sources/TietiezhiTools/
+Sources/Untitled/
 ├── App/         # 窗口、菜单栏和统一外观
 ├── Capture/     # 截图、编辑、贴图、滚动拼接、录制、OCR、文档导出与本地模型
 ├── Models/      # 应用外观设置
 ├── Plugins/     # 插件规范、目录、ZIP 安装和配置存储
 ├── Sharing/     # 双 Mac TLS 配对、键鼠接力与按需虚拟麦克风同步
+├── SpeechInput/ # 豆包游客双通道 ASR、麦克风、范围校验与非激活听写浮条
 ├── Runtime/     # 通用动作执行与 Carbon 全局热键
 └── Views/       # 原生商店、插件配置、录制器与设置
 Plugins/         # 所有插件源码及统一商店目录
@@ -87,7 +88,7 @@ scripts/         # 本地构建与插件打包
 
 ## 数据与兼容标识
 
-显示名和 GitHub 仓库更名不迁移 Bundle ID、已安装插件、Keychain、偏好与历史数据。技术标识继续沿用 `com.tietiezhi.tools`，避免丢失已有身份。应用支持目录不在仓库内。普通 `swift run` 不会生成图标和 helper，完整体验使用 `scripts/run.sh`。品牌资源见 [BRANDING.md](BRANDING.md)。
+当前开发版使用 `com.untitled.app` 作为 Bundle ID、偏好与应用支持目录命名空间；内置插件使用 `com.untitled.*`，Keychain 与音频驱动也使用新身份。历史数据迁移、冲突备份、系统重新授权及双机升级要求见 [IDENTITY-MIGRATION.md](IDENTITY-MIGRATION.md)。应用支持目录不在仓库内。普通 `swift run` 不会生成图标和 helper，完整体验使用 `scripts/run.sh`。品牌资源见 [BRANDING.md](BRANDING.md)。
 
 ## 验证范围
 

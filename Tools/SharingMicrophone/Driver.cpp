@@ -5,8 +5,8 @@
 #include <CoreAudio/AudioServerPlugIn.h>
 
 namespace {
-constexpr const char* InputUID = "com.tietiezhi.tools.microphone.input.v1";
-constexpr const char* FeedUID = "com.tietiezhi.tools.microphone.feed.v1";
+constexpr const char* InputUID = "com.untitled.app.microphone.input.v1";
+constexpr const char* FeedUID = "com.untitled.app.microphone.feed.v1";
 
 struct MicrophoneClient : aspl::Client {
     using aspl::Client::Client;
@@ -45,11 +45,11 @@ std::shared_ptr<aspl::Driver> MakeDriver() {
     auto context = std::make_shared<aspl::Context>();
     auto ring = std::make_shared<MicrophoneLoopback>();
     aspl::DeviceParameters params;
-    params.Name = "Tietiezhi Microphone";
-    params.Manufacturer = "Tietiezhi Tools";
+    params.Name = "Untitled Microphone";
+    params.Manufacturer = "Untitled";
     params.DeviceUID = InputUID;
-    params.ModelUID = "com.tietiezhi.tools.microphone.v1";
-    params.ConfigurationApplicationBundleID = "com.tietiezhi.tools";
+    params.ModelUID = "com.untitled.app.microphone.v1";
+    params.ConfigurationApplicationBundleID = "com.untitled.app";
     params.SampleRate = 48000; params.ChannelCount = 1;
     params.CanBeDefaultForSystemSounds = false;
     auto input = std::make_shared<aspl::Device>(context, params);
@@ -60,7 +60,7 @@ std::shared_ptr<aspl::Driver> MakeDriver() {
     stream.Format = {48000, kAudioFormatLinearPCM, kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kAudioFormatFlagsNativeEndian,
                      4, 1, 4, 1, 32, 0};
     input->AddStreamAsync(stream);
-    params.Name = "Tietiezhi Microphone Feed"; params.DeviceUID = FeedUID;
+    params.Name = "Untitled Microphone Feed"; params.DeviceUID = FeedUID;
     params.CanBeDefault = false;
     auto feed = std::make_shared<HiddenFeed>(context, params);
     auto feedHandler = std::make_shared<FeedHandler>(ring);
@@ -72,7 +72,7 @@ std::shared_ptr<aspl::Driver> MakeDriver() {
     return std::make_shared<aspl::Driver>(context, plugin);
 }
 }
-extern "C" __attribute__((visibility("default"))) void* TietiezhiMicrophoneFactory(CFAllocatorRef, CFUUIDRef type) {
+extern "C" __attribute__((visibility("default"))) void* UntitledMicrophoneFactory(CFAllocatorRef, CFUUIDRef type) {
     if (!CFEqual(type, kAudioServerPlugInTypeUUID)) return nullptr;
     static auto driver = MakeDriver();
     return driver->GetReference();

@@ -10,12 +10,12 @@ description: Create, modify, debug, and package plugins for the Untitled macOS a
 ## 选择实现方式
 
 - **组合已有能力**：在 `Plugins/<slug>/` 修改 manifest v2、README 和可选 LICENSE。可独立发布 ZIP，无需重编译宿主。
-- **新增原生能力**：在 `Sources/TietiezhiTools/<Feature>/` 实现服务与 `PluginUIProvider`，由 `App/PluginComposition.swift` 注册；同时维护 Xcode 源文件引用。原生代码随宿主编译，ZIP 仍只声明能力和布局。
+- **新增原生能力**：在 `Sources/Untitled/<Feature>/` 实现服务与 `PluginUIProvider`，由 `App/PluginComposition.swift` 注册；同时维护 Xcode 源文件引用。原生代码随宿主编译，ZIP 仍只声明能力和布局。
 - **脚本、动态可执行扩展、agent 接管**：当前没有这种运行时。按 [权限与执行规范](../../../docs/PERMISSIONS.md) 实现真正的执行边界、停止机制与授权路径；不要把可执行文件塞进现有 ZIP 或添加无实际作用的开关。
 
 ## 开发
 
-1. 检查 `git status --short`，保留用户现有改动。读相关清单，以及 `Plugins/PluginManifest.swift`、`Plugins/PluginUIRegistry.swift`、`Runtime/HostPermissions.swift` 中涉及的接口；这些 Swift 路径均相对 `Sources/TietiezhiTools/`。
+1. 检查 `git status --short`，保留用户现有改动。读相关清单，以及 `Plugins/PluginManifest.swift`、`Plugins/PluginUIRegistry.swift`、`Runtime/HostPermissions.swift` 中涉及的接口；这些 Swift 路径均相对 `Sources/Untitled/`。
 2. 新插件可运行脚手架；它生成可安装、可打开主面板的示例，随后按需求替换业务内容：
 
    ```bash

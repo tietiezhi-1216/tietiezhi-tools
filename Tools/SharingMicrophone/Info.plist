@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-    <key>CFBundleExecutable</key><string>TietiezhiMicrophone</string>
-    <key>CFBundleIdentifier</key><string>com.tietiezhi.tools.microphone.driver</string>
-    <key>CFBundleName</key><string>Tietiezhi Microphone</string>
+    <key>CFBundleExecutable</key><string>UntitledMicrophone</string>
+    <key>CFBundleIdentifier</key><string>com.untitled.app.microphone.driver</string>
+    <key>CFBundleName</key><string>Untitled Microphone</string>
     <key>CFBundlePackageType</key><string>BNDL</string>
-    <key>CFBundleShortVersionString</key><string>1.0.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleShortVersionString</key><string>1.1.0</string>
+    <key>CFBundleVersion</key><string>3</string>
     <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>
     <key>CFPlugInFactories</key><dict>
-        <key>AF303547-6481-4DD2-8F96-23DDE94BB145</key><string>TietiezhiMicrophoneFactory</string>
+        <key>2D0F3CB8-E4F0-4CE7-857B-3ED3E0F2F3C7</key><string>UntitledMicrophoneFactory</string>
     </dict>
     <key>CFPlugInTypes</key><dict>
-        <key>443ABAB8-E7B3-491A-B985-BEB9187030DB</key><array><string>AF303547-6481-4DD2-8F96-23DDE94BB145</string></array>
+        <key>443ABAB8-E7B3-491A-B985-BEB9187030DB</key><array><string>2D0F3CB8-E4F0-4CE7-857B-3ED3E0F2F3C7</string></array>
     </dict>
     <key>AudioServerPlugIn_MachServices</key><array/>
     <key>NSHumanReadableCopyright</key><string>Copyright 2026 Tietiezhi Tools contributors. MIT License.</string>
