@@ -17,8 +17,8 @@ jobs:
       - name: Build and test
         run: swift test --no-parallel
       - name: Validate plugin packages
-        run: python3 scripts/package-plugins.py --tag v0.9.0
+        run: python3 scripts/package-plugins.py --tag v0.10.0
       - name: Build app
         run: ./scripts/build-app.sh release
       - name: Build Xcode target
-        run: xcodebuild -project TietiezhiTools.xcodeproj -scheme TietiezhiTools -configuration Debug CODE_SIGNING_ALLOWED=NO build
+        run: xcodebuild -project Untitled.xcodeproj -scheme Untitled -configuration Debug CODE_SIGNING_ALLOWED=NO build

@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     void* handle = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
     if (!handle) { std::cerr << dlerror() << '\n'; return 1; }
     using Factory = void* (*)(CFAllocatorRef, CFUUIDRef);
-    auto factory = reinterpret_cast<Factory>(dlsym(handle, "TietiezhiMicrophoneFactory"));
+    auto factory = reinterpret_cast<Factory>(dlsym(handle, "UntitledMicrophoneFactory"));
     assert(factory);
     CFUUIDRef wrong = CFUUIDCreate(nullptr);
     assert(factory(nullptr, wrong) == nullptr); CFRelease(wrong);
@@ -55,11 +55,11 @@ int main(int argc, char** argv) {
         assert(translated == id); // includes the hidden Feed, which visible-device enumeration omits
         assert(Value<Float64>(id, kAudioDevicePropertyNominalSampleRate) == 48000);
         assert(Value<UInt32>(id, kAudioDevicePropertyDeviceIsRunning) == 0);
-        if (uid == "com.tietiezhi.tools.microphone.input.v1") {
+        if (uid == "com.untitled.app.microphone.input.v1") {
             input = true;
-            assert(String(id, kAudioObjectPropertyName) == "Tietiezhi Microphone");
+            assert(String(id, kAudioObjectPropertyName) == "Untitled Microphone");
             assert(Value<UInt32>(id, kAudioDevicePropertyIsHidden) == 0);
-        } else if (uid == "com.tietiezhi.tools.microphone.feed.v1") {
+        } else if (uid == "com.untitled.app.microphone.feed.v1") {
             feed = true;
             assert(Value<UInt32>(id, kAudioDevicePropertyIsHidden) == 1);
             assert(Value<UInt32>(id, kAudioDevicePropertyDeviceCanBeDefaultDevice, kAudioObjectPropertyScopeOutput) == 0);

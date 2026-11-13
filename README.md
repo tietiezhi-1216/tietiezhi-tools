@@ -120,4 +120,4 @@ python3 scripts/package-plugins.py --tag v1.0.0 \
 | 排查高内存和高开销 | [性能规范](docs/PERFORMANCE.md)：资源预算、内存 / CPU / GPU / I/O 与回归验证 |
 | 使用品牌资源 | [品牌与图标](docs/BRANDING.md)：选定原图、圆角展示与 ICNS 生成 |
 
-宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留各自许可。为兼容现有用户，技术标识与数据目录仍沿用 `com.tietiezhi.tools`，内部 Swift module / Xcode scheme 仍为 `TietiezhiTools`。
+宿主采用 [MIT License](LICENSE)。插件与第三方依赖保留作者与许可。当前开发版的工程、Swift module / scheme 与可执行文件统一为 `Untitled`，应用标识为 `com.untitled.app`；已有用户的数据迁移与重新授权步骤见[迁移说明](docs/IDENTITY-MIGRATION.md)。

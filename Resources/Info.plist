@@ -7,9 +7,9 @@
     <key>CFBundleDisplayName</key>
     <string>Untitled</string>
     <key>CFBundleExecutable</key>
-    <string>TietiezhiTools</string>
+    <string>Untitled</string>
     <key>CFBundleIdentifier</key>
-    <string>com.tietiezhi.tools</string>
+    <string>com.untitled.app</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
@@ -19,9 +19,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.9.0</string>
+    <string>0.10.5</string>
     <key>CFBundleVersion</key>
-    <string>19</string>
+    <string>34</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
@@ -29,11 +29,11 @@
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>仅在你开启录屏麦克风选项，或允许已配对设备使用本机麦克风且对端应用实际使用时采集声音。</string>
+    <string>仅在你主动开始语音听写、开启录屏麦克风选项，或允许已配对设备使用本机麦克风且对端应用实际使用时采集声音；语音听写会将录音发送给所选识别服务。</string>
     <key>NSLocalNetworkUsageDescription</key>
     <string>仅在你启动外设共享时发现并连接局域网中已配对的 Mac，以共享键盘、鼠标和麦克风。</string>
     <key>NSBonjourServices</key>
-    <array><string>_ttshare._tcp</string></array>
+    <array><string>_untitled-share._tcp</string></array>
     <key>NSCameraUsageDescription</key>
     <string>仅在你开启录屏画中画选项时显示摄像头画面。</string>
     <key>NSScreenCaptureUsageDescription</key>

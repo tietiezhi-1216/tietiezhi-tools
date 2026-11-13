@@ -26,6 +26,10 @@
 
 0.9.0+ 另支持 `sharePeripherals`、`switchPeripheralControl`、`stopPeripheralSharing`，由独立 `SharingPluginUIProvider` 注册 `sharing.dashboard` / `sharing.status` 组件和 `sharing.toggle` / `sharing.switch` / `sharing.stop` 命令。参阅[外设共享清单](peripheral-sharing/manifest.json)与[双机使用说明](peripheral-sharing/README.md)。原生服务按插件身份惰性创建、通过自身的宿主权限客户端检查权限；安装或启用不启动共享，禁用、卸载或退出立即释放。虚拟音频驱动独立于声明式 ZIP，安装只能由本机用户明确执行。
 
+0.9.8+ 支持原生[豆包语音输入](doubao-speech-input/README.md)：`toggleDoubaoDictation`、`holdDoubaoDictation`、`cancelDoubaoDictation`，以及 `doubao.dictation` / `doubao.preferences` 组件、`doubao.toggle` / `doubao.cancel` 命令。清单使用最低宿主 0.9.8；切换与按住两种操作各自使用通用默认模板，按住动作由 Carbon 的按下 / 松开事件驱动，重绑、停用会结束未松开的动作。安装或渲染界面不录音、不联网；实际采集与实时输入通过绑定插件身份的麦克风 / 辅助功能权限客户端检查。禁用、升级、卸载和退出停止本插件的设备、连接、任务与黑白非激活浮条。ZIP 不携带动态原生代码。
+
+0.10.0 部署构建对语音实时上屏设置生产默认关闭的 readiness gate。0.10.1 的豆信 1.1.1 自测版保留 `realtimeInputVerified: false`，另提供用户明确 opt-in 的私有 `experimentalRealtimeInput` 偏好，旧 JSON 默认 false；安装 / 升级不自动开启。未 opt-in 的实时热键仍在权限 / 录音 / 联网前拒绝，显式试音仅预览仍可用。开启自测只是允许用户尝试，不代表端到端已验收，不改原绑定或增加权限；不能把 fake 输入测试或其他插件测试当作实时上屏验收。
+
 ## 通用槽位
 
 每个槽位是有序数组，省略或空数组即不显示；只有根布局 `content` 必须非空。数组顺序就是显示顺序。
@@ -37,6 +41,8 @@
 | `content` | 主内容，组件可自行处理滚动、网格、表单和编辑器 |
 | `footer.leading` / `footer.trailing` | 页面底部两侧 |
 | `menuBar` | 系统菜单栏里的插件子菜单 |
+
+**宿主内容边界（0.9.7+）**：软件本体为插件主内容提供左右各 28 pt、上下各 16 pt 的固定留白，内容与页面标题、工具栏、页脚对齐。宿主显式限定可用尺寸并裁剪越界绘制，插件的固定尺寸或偏移不能把面板画进外侧留白。组件只负责内部卡片/行间距，无需再补整页边距。标签页和内嵌面板继承已有边界，不重复叠加；独立 sheet/popover 会建立自己的边界，调整窗口大小后仍有效。原生组件若兼顾独立使用，可读取 `EnvironmentValues.pluginContentHasInsets` 避免重复留白；清单不提供取消宿主边界的开关。
 
 插件可以自行选择标题、图标、启停、更多、简介、设置按钮的位置。宿主组件不会自动插入；不声明就不显示。应用级设置始终在侧边栏底部和 macOS 应用菜单中，不占用插件槽位。
 
@@ -143,7 +149,7 @@ try context.permissions.require([.camera])
 ## 发布
 
 ```bash
-python3 scripts/package-plugins.py --tag v0.9.0
+python3 scripts/package-plugins.py --tag v0.10.0
 # 单个插件，可选独立 Release 仓库
 python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin --repository alice/my-plugin
 ```
@@ -152,7 +158,7 @@ python3 scripts/package-plugins.py --tag v1.0.0 --plugin my-plugin --repository 
 
 上传 ZIP 到对应 Release，资产实际可下载后再更新 main 的商店目录。统一全量打包可追加 `--write-catalog`；局部和独立仓库打包禁止覆盖中央目录。中央目录也可人工收录独立 GitHub Release，必须核对 ID、版本及 SHA-256。不要替换已发布的同版本资产；修改清单、说明或许可导致包变化时递增插件版本并重新生成校验值。历史目录引用旧仓库名的 Release 保持原校验值，依赖 GitHub 仓库改名重定向继续下载。
 
-本地配置位于 `~/Library/Application Support/com.tietiezhi.tools/Plugins/<id>.json`。升级替换清单并保留用户操作与启停状态；禁用释放快捷键，卸载删除该插件配置。配置不会随源码发布。
+本地配置位于 `~/Library/Application Support/com.untitled.app/Plugins/<id>.json`。升级替换清单并保留用户操作与启停状态；禁用释放快捷键，卸载删除该插件配置。配置不会随源码发布。
 
 
 ### 默认动作（宿主 0.6.0+）

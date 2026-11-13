@@ -95,7 +95,7 @@ def run(args):
             if abs(dx) > 4096 or abs(dy) > 4096:
                 raise RuntimeError("Test target is too far from entry; refusing unsafe pointer jump")
             packets = [packet("move", x=dx, y=dy), packet("down"), packet("up")]
-            codes = [17, 17, 1, 4, 0, 15, 14]  # fixed ttshare; no Enter or application shortcuts
+            codes = [32, 45, 17, 34, 17, 37, 14, 2]  # fixed untitled; no Enter or application shortcuts
             for code in codes:
                 packets += [packet("keyDown", code), packet("keyUp", code)]
             a.command("input", packets=packets)
@@ -142,7 +142,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--session", default="/tmp/tietiezhi-sharing-acceptance-session.json")
+    parser.add_argument("--session", default="/tmp/untitled-sharing-acceptance-session.json")
     parser.add_argument("--remote", required=True, help="Trusted SSH alias for the receiver")
     parser.add_argument("--peer", help="Receiver IP or DNS address, required for the network phase")
     parser.add_argument("--microphone-uid", help="Explicit physical input UID, required for microphone phase")
