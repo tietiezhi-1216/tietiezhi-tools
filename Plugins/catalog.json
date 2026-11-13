@@ -27,6 +27,15 @@
       "author": "tietiezhi-1216",
       "downloadURL": "https://github.com/tietiezhi-1216/untitled/releases/download/v0.9.0/screenshot-1.5.0.zip",
       "sha256": "559cfc063dcb7dba94128f3216952756af9af0df890dcd3fb12b1dcc8854b0ab"
+    },
+    {
+      "id": "com.untitled.doubao-speech-input",
+      "name": "豆信语音输入",
+      "version": "1.1.4",
+      "summary": "小胶囊纯波形听写；豆包实时草稿与结束定稿，标点在定稿后修正。实时上屏需自行开启实验选项，微信独立接口尚未接通。",
+      "author": "tietiezhi-1216",
+      "downloadURL": "https://github.com/tietiezhi-1216/untitled/releases/download/v0.10.5/doubao-speech-input-1.1.4.zip",
+      "sha256": "35ed104c13a49363a469aa6d3f7d779f0c7df5969409f8d80f631d07d76336f5"
     }
   ]
 }
